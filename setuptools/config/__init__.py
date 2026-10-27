@@ -2,8 +2,9 @@
 ``setuptools.config.setupcfg``
 """
 
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, TypeVar, cast
+from typing import TypeVar, cast
 
 from ..warnings import SetuptoolsDeprecationWarning
 from . import setupcfg

@@ -52,7 +52,7 @@ class TestCommand:
 
         # making sure execute gets called properly
         def _execute(func, args, exec_msg, level):
-            assert exec_msg == 'generating out from in'
+            assert exec_msg == "generating 'out' from 'in'"
 
         cmd.force = True
         cmd.execute = _execute

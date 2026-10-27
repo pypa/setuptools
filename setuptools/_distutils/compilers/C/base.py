@@ -8,6 +8,8 @@ from __future__ import annotations
 import os
 import pathlib
 import re
+import shutil
+import subprocess
 import sys
 import warnings
 from collections.abc import Callable, Iterable, MutableSequence, Sequence
@@ -16,34 +18,30 @@ from typing import (
     ClassVar,
     Literal,
     TypeVar,
-    Union,
     overload,
 )
 
 from more_itertools import always_iterable
 
-from ..._log import log
-from ..._modified import newer_group
-from ...dir_util import mkpath
-from ...errors import (
-    DistutilsModuleError,
-    DistutilsPlatformError,
-)
-from ...file_util import move_file
-from ...spawn import spawn
-from ...util import execute, is_mingw, split_quoted
-from .errors import (
-    CompileError,
-    LinkError,
-    UnknownFileType,
-)
+from .._modified import newer_group
+from .._util import split_quoted
+from ..errors import PlatformError, UnknownFileType
+from ..logging import get_logger
+from ..platform import macos
+from ..platform.detect import is_mingw
+from .errors import CompileError, LinkError
+
+log = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias, TypeVarTuple, Unpack
+    from subprocess import _ENV
+    from typing import TypeAlias
+
+    from typing_extensions import TypeVarTuple, Unpack
 
     _Ts = TypeVarTuple("_Ts")
 
-_Macro: TypeAlias = Union[tuple[str], tuple[str, Union[str, None]]]
+_Macro: TypeAlias = tuple[str] | tuple[str, str | None]
 _StrPathT = TypeVar("_StrPathT", bound="str | os.PathLike[str]")
 _BytesPathT = TypeVar("_BytesPathT", bound="bytes | os.PathLike[bytes]")
 
@@ -62,15 +60,19 @@ class Compiler:
     attributes may be varied on a per-compilation or per-link basis.
     """
 
-    # 'compiler_type' is a class attribute that identifies this class.  It
-    # keeps code that wants to know what kind of compiler it's dealing with
-    # from having to import all possible compiler classes just to do an
-    # 'isinstance'.  In concrete CCompiler subclasses, 'compiler_type'
-    # should really, really be one of the keys of the 'compiler_class'
-    # dictionary (see below -- used by the 'new_compiler()' factory
-    # function) -- authors of new compiler interface classes are
-    # responsible for updating 'compiler_class'!
-    compiler_type: ClassVar[str] = None  # type: ignore[assignment]
+    compiler_type: ClassVar[str]
+    """
+    Short name identifying the kind of compiler, so callers can tell
+    compilers apart without importing every compiler class for an
+    ``isinstance`` check. Set this in each concrete subclass; it's the key
+    under which the class is registered by ``get_compilers()``.
+    """
+
+    description: ClassVar[str]
+    """
+    Human-readable description of the compiler, shown by ``show_compilers()``.
+    Set this in each concrete subclass.
+    """
 
     # XXX things not handled by this compiler abstraction model:
     #   * client can't provide additional options for a compiler,
@@ -78,7 +80,7 @@ class Compiler:
     #     should be the domain of concrete compiler abstraction classes
     #     (UnixCCompiler, MSVCCompiler, etc.) -- or perhaps the base
     #     class should have methods for the common ones.
-    #   * can't completely override the include or library searchg
+    #   * can't completely override the include or library search
     #     path, ie. no "cc -I -Idir1 -Idir2" or "cc -L -Ldir1 -Ldir2".
     #     I'm not sure how widely supported this is even by Unix
     #     compilers, much less on other platforms.  And I'm even less
@@ -120,20 +122,14 @@ class Compiler:
     }
     language_order: ClassVar[list[str]] = ["c++", "objc", "c"]
 
-    include_dirs: list[str] = []
-    """
-    include dirs specific to this compiler class
-    """
+    # Read as class-level defaults via ``self.__class__`` (so a subclass may
+    # define compiler-specific dirs), while each instance keeps its own list
+    # built up in ``__init__``; the class-level mutable default is therefore
+    # intentional and never mutated in place.
+    include_dirs: list[str] = []  # noqa: RUF012
+    library_dirs: list[str] = []  # noqa: RUF012
 
-    library_dirs: list[str] = []
-    """
-    library dirs specific to this compiler class
-    """
-
-    def __init__(
-        self, verbose: bool = False, dry_run: bool = False, force: bool = False
-    ) -> None:
-        self.dry_run = dry_run
+    def __init__(self, verbose: bool = False, force: bool = False) -> None:
         self.force = force
         self.verbose = verbose
 
@@ -165,8 +161,27 @@ class Compiler:
         # named library files) to include on any link
         self.objects: list[str] = []
 
-        for key in self.executables.keys():
+        for key in self.executables:
             self.set_executable(key, self.executables[key])
+
+    def initialize(self, plat_name: str | None = None) -> None:
+        """Prepare the compiler for use, targeting the given platform.
+
+        Most compilers configure themselves lazily on first use and so
+        need no explicit initialization; for those this is a no-op. A
+        compiler that must be initialized before use (e.g. MSVCCompiler,
+        which resolves a Visual Studio environment) overrides this to
+        honor ``plat_name`` when cross-compiling.
+        """
+
+    def configure_system(self) -> None:
+        """Configure this compiler from the interpreter's build configuration.
+
+        The default is a no-op; Unix-style compilers override this to apply
+        the compiler, flag, and archiver settings that CPython recorded in
+        sysconfig when it was built, so extensions build consistently with the
+        interpreter.
+        """
 
     def set_executables(self, **kwargs: str) -> None:
         """Define the executables (and options for them) that will be run
@@ -194,12 +209,12 @@ class Compiler:
         # discovered at run-time, since there are many different ways to do
         # basically the same things with Unix C compilers.
 
-        for key in kwargs:
+        for key, value in kwargs.items():
             if key not in self.executables:
                 raise ValueError(
                     f"unknown executable '{key}' for class {self.__class__.__name__}"
                 )
-            self.set_executable(key, kwargs[key])
+            self.set_executable(key, value)
 
     def set_executable(self, key, value):
         if isinstance(value, str):
@@ -208,11 +223,9 @@ class Compiler:
             setattr(self, key, value)
 
     def _find_macro(self, name):
-        i = 0
-        for defn in self.macros:
+        for i, defn in enumerate(self.macros):
             if defn[0] == name:
                 return i
-            i += 1
         return None
 
     def _check_macro_definitions(self, definitions):
@@ -531,12 +544,8 @@ class Compiler:
         """
         if self.force:
             return True
-        else:
-            if self.dry_run:
-                newer = newer_group(objects, output_file, missing='newer')
-            else:
-                newer = newer_group(objects, output_file)
-            return newer
+        newer = newer_group(objects, output_file)
+        return newer
 
     def detect_language(self, sources: str | list[str]) -> str | None:
         """Detect the language of a given file, or list of files. Uses
@@ -547,7 +556,7 @@ class Compiler:
         lang = None
         index = len(self.language_order)
         for source in sources:
-            base, ext = os.path.splitext(source)
+            _base, ext = os.path.splitext(source)
             extlang = self.language_map.get(ext)
             try:
                 extindex = self.language_order.index(extlang)
@@ -579,7 +588,6 @@ class Compiler:
 
         Raises PreprocessError on failure.
         """
-        pass
 
     def compile(
         self,
@@ -661,7 +669,6 @@ class Compiler:
         """Compile 'src' to product 'obj'."""
         # A concrete compiler class that does not override compile()
         # should implement _compile().
-        pass
 
     def create_static_lib(
         self,
@@ -693,7 +700,6 @@ class Compiler:
 
         Raises LibError on failure.
         """
-        pass
 
     # values for target_desc parameter in link()
     SHARED_OBJECT = "shared_object"
@@ -865,7 +871,7 @@ class Compiler:
         """
         raise NotImplementedError
 
-    def runtime_library_dir_option(self, dir: str) -> str:
+    def runtime_library_dir_option(self, dir: str) -> str | list[str]:
         """Return the compiler option to add 'dir' to the list of
         directories searched for runtime libraries.
         """
@@ -1020,10 +1026,10 @@ int main (int argc, char **argv) {{
     ) -> list[str]:
         if output_dir is None:
             output_dir = ''
-        return list(
+        return [
             self._make_out_path(output_dir, strip_dir, src_name)
             for src_name in source_filenames
-        )
+        ]
 
     @property
     def out_extensions(self):
@@ -1150,12 +1156,40 @@ int main (int argc, char **argv) {{
         msg: object = None,
         level: int = 1,
     ) -> None:
-        execute(func, args, msg, self.dry_run)
+        if msg is None:
+            msg = f"{func.__name__}{args!r}"
+        log.info(msg)
+        func(*args)
+
+    def call(
+        self,
+        cmd: MutableSequence[bytes | str | os.PathLike[str]],
+        *,
+        env: _ENV | None = None,
+        **kwargs,
+    ) -> None:
+        """Run 'cmd' in a subprocess, letting subprocess exceptions propagate."""
+        log.info(subprocess.list2cmdline(cmd))
+        subprocess.check_call(cmd, env=macos.inject_ver(env), **kwargs)
 
     def spawn(
-        self, cmd: MutableSequence[bytes | str | os.PathLike[str]], **kwargs
+        self,
+        cmd: MutableSequence[bytes | str | os.PathLike[str]],
+        *,
+        env: _ENV | None = None,
+        **kwargs,
     ) -> None:
-        spawn(cmd, dry_run=self.dry_run, **kwargs)
+        warnings.warn(
+            "Compiler.spawn is deprecated; use Compiler.call instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        # translation shared with distutils.spawn.spawn; imported late so the
+        # clean `call` path stays free of the distutils dependency.
+        from ...spawn import _translate_errors
+
+        with _translate_errors(cmd):
+            self.call(cmd, env=env, **kwargs)
 
     @overload
     def move_file(
@@ -1170,10 +1204,11 @@ int main (int argc, char **argv) {{
         src: str | os.PathLike[str] | bytes | os.PathLike[bytes],
         dst: str | os.PathLike[str] | bytes | os.PathLike[bytes],
     ) -> str | os.PathLike[str] | bytes | os.PathLike[bytes]:
-        return move_file(src, dst, dry_run=self.dry_run)
+        return shutil.move(src, dst)
 
     def mkpath(self, name, mode=0o777):
-        mkpath(name, mode, dry_run=self.dry_run)
+        if name:
+            os.makedirs(name, mode, exist_ok=True)
 
 
 # Map a sys.platform/os.name ('posix', 'nt') to the default compiler
@@ -1220,52 +1255,37 @@ def get_default_compiler(osname: str | None = None, platform: str | None = None)
     return 'unix'
 
 
-# Map compiler types to (module_name, class_name) pairs -- ie. where to
-# find the code that implements an interface to this compiler.  (The module
-# is assumed to be in the 'distutils' package.)
-compiler_class = {
-    'unix': ('unixccompiler', 'UnixCCompiler', "standard UNIX-style compiler"),
-    'msvc': ('_msvccompiler', 'MSVCCompiler', "Microsoft Visual C++"),
-    'cygwin': (
-        'cygwinccompiler',
-        'CygwinCCompiler',
-        "Cygwin port of GNU C Compiler for Win32",
-    ),
-    'mingw32': (
-        'cygwinccompiler',
-        'Mingw32CCompiler',
-        "Mingw32 port of GNU C Compiler for Win32",
-    ),
-    'bcpp': ('bcppcompiler', 'BCPPCompiler', "Borland C++ Compiler"),
-    'zos': ('zosccompiler', 'zOSCCompiler', 'IBM XL C/C++ Compilers'),
-}
+def _concrete_compilers(cls: type[Compiler] | None = None):
+    """Yield every subclass of ``cls`` (recursively)."""
+    for subclass in (cls or Compiler).__subclasses__():
+        yield subclass
+        yield from _concrete_compilers(subclass)
 
 
-def show_compilers() -> None:
-    """Print list of available compilers (used by the "--help-compiler"
-    options to "build", "build_ext", "build_clib").
+def get_compilers() -> dict[str, type[Compiler]]:
+    """Map each compiler's short name (``compiler_type``) to its class.
+
+    Imports the concrete compiler modules so their classes are defined, then
+    collects every non-abstract ``Compiler`` subclass.
     """
-    # XXX this "knows" that the compiler option it's describing is
-    # "--compiler", which just happens to be the case for the three
-    # commands that use it.
-    from distutils.fancy_getopt import FancyGetopt
+    # ensure the concrete compiler classes are imported and thus registered
+    # as subclasses of Compiler
+    from . import cygwin, msvc, unix, zos  # noqa: F401
 
-    compilers = sorted(
-        ("compiler=" + compiler, None, compiler_class[compiler][2])
-        for compiler in compiler_class.keys()
-    )
-    pretty_printer = FancyGetopt(compilers)
-    pretty_printer.print_help("List of available compilers:")
+    return {
+        subclass.compiler_type: subclass
+        for subclass in _concrete_compilers()
+        if getattr(subclass, 'compiler_type', None)
+    }
 
 
 def new_compiler(
     plat: str | None = None,
     compiler: str | None = None,
     verbose: bool = False,
-    dry_run: bool = False,
     force: bool = False,
 ) -> Compiler:
-    """Generate an instance of some CCompiler subclass for the supplied
+    """Generate an instance of some Compiler subclass for the supplied
     platform/compiler combination.  'plat' defaults to 'os.name'
     (eg. 'posix', 'nt'), and 'compiler' defaults to the default compiler
     for that platform.  Currently only 'posix' and 'nt' are supported, and
@@ -1277,37 +1297,21 @@ def new_compiler(
     """
     if plat is None:
         plat = os.name
+    if compiler is None:
+        compiler = get_default_compiler(plat)
 
     try:
-        if compiler is None:
-            compiler = get_default_compiler(plat)
-
-        (module_name, class_name, long_description) = compiler_class[compiler]
+        cls = get_compilers()[compiler]
     except KeyError:
         msg = f"don't know how to compile C/C++ code on platform '{plat}'"
         if compiler is not None:
             msg = msg + f" with '{compiler}' compiler"
-        raise DistutilsPlatformError(msg)
-
-    try:
-        module_name = "distutils." + module_name
-        __import__(module_name)
-        module = sys.modules[module_name]
-        klass = vars(module)[class_name]
-    except ImportError:
-        raise DistutilsModuleError(
-            f"can't compile C/C++ code: unable to load module '{module_name}'"
-        )
-    except KeyError:
-        raise DistutilsModuleError(
-            f"can't compile C/C++ code: unable to find class '{class_name}' "
-            f"in module '{module_name}'"
-        )
+        raise PlatformError(msg)
 
     # XXX The None is necessary to preserve backwards compatibility
     # with classes that expect verbose to be the first positional
     # argument.
-    return klass(None, dry_run, force)
+    return cls(None, force=force)
 
 
 def gen_preprocess_options(

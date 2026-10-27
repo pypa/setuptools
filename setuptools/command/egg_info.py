@@ -10,13 +10,13 @@ import re
 import sys
 import time
 from collections.abc import Callable
+from typing import ClassVar
 
 import packaging
 import packaging.requirements
 import packaging.version
 
-import setuptools.unicode_utils as unicode_utils
-from setuptools import Command
+from setuptools import Command, unicode_utils
 from setuptools.command import bdist_egg
 from setuptools.command.sdist import sdist, walk_revctrl
 from setuptools.command.setopt import edit_config
@@ -37,6 +37,27 @@ from distutils.util import convert_path
 PY_MAJOR = f'{sys.version_info.major}.{sys.version_info.minor}'
 
 
+class _NormalizedMatcher:
+    """
+    Wrap a compiled pattern so that matching is insensitive to Unicode
+    normalization form.
+
+    File names walked from disk (NFD on macOS APFS/HFS+) and patterns from
+    ``MANIFEST.in`` (typically NFC) can denote the same file while differing
+    byte-for-byte. Normalizing both sides before matching keeps an exclusion
+    (or inclusion) from silently failing. See GHSA-h35f-9h28-mq5c.
+    """
+
+    def __init__(self, pattern: re.Pattern) -> None:
+        self._pattern = pattern
+
+    def match(self, path):
+        return self._pattern.match(unicode_utils.normalize(path))
+
+    def search(self, path):
+        return self._pattern.search(unicode_utils.normalize(path))
+
+
 def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
     """
     Translate a file path glob like '*.txt' in to a regular expression.
@@ -45,6 +66,11 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
     directories.
     """
     pat = ''
+
+    # Normalize the pattern so it matches paths regardless of the Unicode
+    # normalization form used on disk (GHSA-h35f-9h28-mq5c). Candidate paths
+    # are normalized to the same form by ``_NormalizedMatcher``.
+    glob = unicode_utils.normalize(glob)
 
     # This will split on '/' within [character classes]. This is deliberate.
     chunks = glob.split(os.path.sep)
@@ -117,7 +143,7 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
             pat += sep
 
     pat += r'\Z'
-    return re.compile(pat, flags=re.MULTILINE | re.DOTALL)
+    return _NormalizedMatcher(re.compile(pat, flags=re.MULTILINE | re.DOTALL))
 
 
 class InfoCommon:
@@ -170,20 +196,24 @@ class InfoCommon:
 class egg_info(InfoCommon, Command):
     description = "create a distribution's .egg-info directory"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         (
             'egg-base=',
             'e',
-            "directory containing .egg-info directories"
-            " [default: top of the source tree]",
+            (
+                "directory containing .egg-info directories"
+                " [default: top of the source tree]"
+            ),
         ),
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
         ('no-date', 'D', "Don't include date stamp [default]"),
     ]
 
-    boolean_options = ['tag-date']
-    negative_opt = {
+    boolean_options: ClassVar[list[str]] = ['tag-date']
+    negative_opt: ClassVar[dict[str, str]] = {
         'no-date': 'tag-date',
     }
 
@@ -280,16 +310,14 @@ class egg_info(InfoCommon, Command):
         """
         log.info("writing %s to %s", what, filename)
         data = data.encode("utf-8")
-        if not self.dry_run:
-            f = open(filename, 'wb')
-            f.write(data)
-            f.close()
+        f = open(filename, 'wb')  # noqa: SIM115 # handle managed explicitly
+        f.write(data)
+        f.close()
 
     def delete_file(self, filename) -> None:
         """Delete `filename` (if not a dry run) after announcing it"""
         log.info("deleting %s", filename)
-        if not self.dry_run:
-            os.unlink(filename)
+        os.unlink(filename)
 
     def run(self) -> None:
         # Pre-load to avoid iterating over entry-points while an empty .egg-info
@@ -650,19 +678,18 @@ def write_file(filename, contents) -> None:
 
 def write_pkg_info(cmd, basename, filename) -> None:
     log.info("writing %s", filename)
-    if not cmd.dry_run:
-        metadata = cmd.distribution.metadata
-        metadata.version, oldver = cmd.egg_version, metadata.version
-        metadata.name, oldname = cmd.egg_name, metadata.name
+    metadata = cmd.distribution.metadata
+    metadata.version, oldver = cmd.egg_version, metadata.version
+    metadata.name, oldname = cmd.egg_name, metadata.name
 
-        try:
-            metadata.write_pkg_info(cmd.egg_info)
-        finally:
-            metadata.name, metadata.version = oldname, oldver
+    try:
+        metadata.write_pkg_info(cmd.egg_info)
+    finally:
+        metadata.name, metadata.version = oldname, oldver
 
-        safe = getattr(cmd.distribution, 'zip_safe', None)
+    safe = getattr(cmd.distribution, 'zip_safe', None)
 
-        bdist_egg.write_safety_flag(cmd.egg_info, safe)
+    bdist_egg.write_safety_flag(cmd.egg_info, safe)
 
 
 def warn_depends_obsolete(cmd, basename, filename) -> None:

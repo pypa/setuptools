@@ -50,10 +50,7 @@ def test_dist_fetch_build_egg(tmpdir, setuptools_wheel):
             """
             ).format(index_url=index_url)
         )
-    reqs = """
-    barbazquux-runner
-    barbazquux
-    """.split()
+    reqs = ["barbazquux-runner", "barbazquux"]
     with tmpdir.as_cwd():
         dist = Distribution()
         dist.parse_config_files()

@@ -11,7 +11,7 @@ from distutils import archive_util, dir_util, file_util
 from distutils._log import log
 from glob import glob
 from itertools import filterfalse
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from ..core import Command
 from ..errors import DistutilsOptionError, DistutilsTemplateError
@@ -29,7 +29,7 @@ def show_formats():
 
     formats = sorted(
         ("formats=" + format, None, ARCHIVE_FORMATS[format][2])
-        for format in ARCHIVE_FORMATS.keys()
+        for format in ARCHIVE_FORMATS
     )
     FancyGetopt(formats).print_help("List of available source distribution formats:")
 
@@ -43,22 +43,26 @@ class sdist(Command):
         Placed here so user_options can view it"""
         return self.metadata_check
 
-    user_options = [
+    user_options: ClassVar = [
         ('template=', 't', "name of manifest template file [default: MANIFEST.in]"),
         ('manifest=', 'm', "name of manifest file [default: MANIFEST]"),
         (
             'use-defaults',
             None,
-            "include the default file set in the manifest "
-            "[default; disable with --no-defaults]",
+            (
+                "include the default file set in the manifest "
+                "[default; disable with --no-defaults]"
+            ),
         ),
         ('no-defaults', None, "don't include the default file set"),
         (
             'prune',
             None,
-            "specifically exclude files/directories that should not be "
-            "distributed (build tree, RCS/CVS dirs, etc.) "
-            "[default; disable with --no-prune]",
+            (
+                "specifically exclude files/directories that should not be "
+                "distributed (build tree, RCS/CVS dirs, etc.) "
+                "[default; disable with --no-prune]"
+            ),
         ),
         ('no-prune', None, "don't automatically exclude anything"),
         (
@@ -69,14 +73,16 @@ class sdist(Command):
         (
             'force-manifest',
             'f',
-            "forcibly regenerate the manifest and carry on as usual. "
-            "Deprecated: now the manifest is always regenerated.",
+            (
+                "forcibly regenerate the manifest and carry on as usual. "
+                "Deprecated: now the manifest is always regenerated."
+            ),
         ),
         ('formats=', None, "formats for source distribution (comma-separated list)"),
         (
             'keep-temp',
             'k',
-            "keep the distribution tree around after creating " + "archive file(s)",
+            "keep the distribution tree around after creating archive file(s)",
         ),
         (
             'dist-dir=',
@@ -86,8 +92,10 @@ class sdist(Command):
         (
             'metadata-check',
             None,
-            "Ensure that all required elements of meta-data "
-            "are supplied. Warn if any missing. [default]",
+            (
+                "Ensure that all required elements of meta-data "
+                "are supplied. Warn if any missing. [default]"
+            ),
         ),
         (
             'owner=',
@@ -101,7 +109,7 @@ class sdist(Command):
         ),
     ]
 
-    boolean_options: ClassVar[list[str]] = [
+    boolean_options: ClassVar = [
         'use-defaults',
         'prune',
         'manifest-only',
@@ -114,12 +122,14 @@ class sdist(Command):
         ('help-formats', None, "list available distribution formats", show_formats),
     ]
 
-    negative_opt: ClassVar[dict[str, str]] = {
+    negative_opt: ClassVar = {
         'no-defaults': 'use-defaults',
         'no-prune': 'prune',
     }
 
-    sub_commands = [('check', checking_metadata)]
+    sub_commands: ClassVar[list[tuple[str, Callable[[Any], bool] | None]]] = [
+        ('check', checking_metadata)
+    ]
 
     READMES: ClassVar[tuple[str, ...]] = ('README', 'README.txt', 'README.rst')
 
@@ -206,8 +216,7 @@ class sdist(Command):
 
         if not template_exists:
             self.warn(
-                ("manifest template '%s' does not exist " + "(using default file list)")
-                % self.template
+                f"manifest template '{self.template}' does not exist (using default file list)"
             )
         self.filelist.findall()
 
@@ -318,7 +327,7 @@ class sdist(Command):
                         self.filelist.append(item)
                 else:
                     # a (dirname, filenames) tuple
-                    dirname, filenames = item
+                    _dirname, filenames = item
                     for f in filenames:
                         f = convert_path(f)
                         if os.path.isfile(f):
@@ -450,7 +459,7 @@ class sdist(Command):
         # put 'files' there; the 'mkpath()' is just so we don't die
         # if the manifest happens to be empty.
         self.mkpath(base_dir)
-        dir_util.create_tree(base_dir, files, dry_run=self.dry_run)
+        dir_util.create_tree(base_dir, files)
 
         # And walk over the list of files, either making a hard link (if
         # os.link exists) to each one that doesn't already exist in its
@@ -508,7 +517,7 @@ class sdist(Command):
         self.archive_files = archive_files
 
         if not self.keep_temp:
-            dir_util.remove_tree(base_dir, dry_run=self.dry_run)
+            dir_util.remove_tree(base_dir)
 
     def get_archive_files(self):
         """Return the list of archive files created when the command

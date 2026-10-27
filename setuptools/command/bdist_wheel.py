@@ -16,7 +16,7 @@ import warnings
 from collections.abc import Iterable, Sequence
 from email.generator import BytesGenerator
 from glob import iglob
-from typing import Literal, cast
+from typing import ClassVar, Literal, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
 from packaging import tags, version as _packaging_version
@@ -48,12 +48,45 @@ setuptools_major_version = int(__version__.split(".")[0])
 PY_LIMITED_API_PATTERN = r"cp3\d"
 
 
+def _interpreter_name() -> str:
+    soabi = sysconfig.get_config_var("SOABI") or ""
+    if re.match(r"(?:cpython-|cp)\d", soabi):
+        return "cp"
+    if soabi.startswith("pypy"):
+        return "pp"
+    if soabi.startswith("graalpy"):
+        return "graalpy"
+    return tags.interpreter_name()
+
+
+def _python_version() -> tuple[int, int]:
+    # VERSION comes from the target configuration; py_version_short does not.
+    version = sysconfig.get_config_var("VERSION")
+    # Windows uses e.g. '315', whereas POSIX uses '3.15'.
+    match = re.fullmatch(r"(\d)\.?([0-9]+)", str(version))
+    if match is None:
+        soabi = str(sysconfig.get_config_var("SOABI"))
+        match = re.match(r"(?:cpython-|cp|pypy|graalpy[^-]*-)(\d)(\d+)", soabi)
+    return (int(match[1]), int(match[2])) if match else sys.version_info[:2]
+
+
 def _is_32bit_interpreter() -> bool:
+    size = sysconfig.get_config_var("SIZEOF_VOID_P")
+    if size is not None:
+        return size == 4
     return struct.calcsize("P") == 4
 
 
+def _is_debug(*, warn: bool = False) -> bool:
+    fallback = hasattr(sys, "gettotalrefcount")
+    suffix = sysconfig.get_config_var("EXT_SUFFIX")
+    if isinstance(suffix, str) and suffix.endswith(".pyd"):
+        fallback = suffix.startswith("_d")
+    return get_flag("Py_DEBUG", fallback, warn=warn)
+
+
 def python_tag() -> str:
-    return f"py{sys.version_info.major}"
+    return f"py{_python_version()[0]}"
 
 
 def get_platform(archive_root: str | None) -> str:
@@ -96,21 +129,22 @@ def get_flag(
 def get_abi_tag() -> str | None:
     """Return the ABI tag based on SOABI (if available) or emulate SOABI (PyPy2)."""
     soabi: str = sysconfig.get_config_var("SOABI")
-    impl = tags.interpreter_name()
+    impl = _interpreter_name()
     if not soabi and impl in ("cp", "pp") and hasattr(sys, "maxunicode"):
         d = ""
         u = ""
-        if get_flag("Py_DEBUG", hasattr(sys, "gettotalrefcount"), warn=(impl == "cp")):
+        if _is_debug(warn=(impl == "cp")):
             d = "d"
 
-        abi = f"{impl}{tags.interpreter_version()}{d}{u}"
+        impl_ver = "".join(map(str, _python_version()))
+        abi = f"{impl}{impl_ver}{d}{u}"
     elif soabi and impl == "cp" and soabi.startswith("cpython"):
         # non-Windows
         abi = "cp" + soabi.split("-")[1]
     elif soabi and impl == "cp" and soabi.startswith("cp"):
         # Windows
         abi = soabi.split("-")[0]
-        if hasattr(sys, "gettotalrefcount"):
+        if _is_debug() and not abi.endswith("d"):
             # using debug build; append "d" flag
             abi += "d"
     elif soabi and impl == "pp":
@@ -132,27 +166,45 @@ def safer_version(version: str) -> str:
     return safe_version(version).replace("-", "_")
 
 
+def stable_abi_tag(impl_name, impl_version):
+    abi_tag = None
+    if impl_name == "cp" and impl_version[0] == '3':
+        if sysconfig.get_config_var("Py_GIL_DISABLED"):
+            # per PEP 803 these are possible on older Python versions
+            # but in practice these builds need cp315 or newer
+            abi_tag = "abi3.abi3t"
+        else:
+            abi_tag = "abi3"
+    return abi_tag
+
+
 class bdist_wheel(Command):
     description = "create a wheel distribution"
 
-    supported_compressions = {
+    supported_compressions: ClassVar[dict[str, int]] = {
         "stored": ZIP_STORED,
         "deflated": ZIP_DEFLATED,
     }
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ("bdist-dir=", "b", "temporary directory for creating the distribution"),
         (
             "plat-name=",
             "p",
-            "platform name to embed in generated filenames "
-            f"[default: {get_platform(None)}]",
+            (
+                "platform name to embed in generated filenames "
+                f"[default: {get_platform(None)}]"
+            ),
         ),
         (
             "keep-temp",
             "k",
-            "keep the pseudo-installation tree around after "
-            "creating the distribution archive",
+            (
+                "keep the pseudo-installation tree around after "
+                "creating the distribution archive"
+            ),
         ),
         ("dist-dir=", "d", "directory to put final built distributions in"),
         ("skip-build", None, "skip rebuilding everything (for testing/debugging)"),
@@ -185,25 +237,34 @@ class bdist_wheel(Command):
         (
             "build-number=",
             None,
-            "Build number for this particular version. "
-            "As specified in PEP-0427, this must start with a digit. "
-            "[default: None]",
+            (
+                "Build number for this particular version. "
+                "As specified in PEP-0427, this must start with a digit. "
+                "[default: None]"
+            ),
         ),
         (
             "py-limited-api=",
             None,
-            "Python tag (cp32|cp33|cpNN) for abi3 wheel tag [default: false]",
+            "Python tag (cp32|cp33|cpNN) for abi3 or abi3t ABI [default: false]",
         ),
         (
             "dist-info-dir=",
             None,
-            "directory where a pre-generated dist-info can be found (e.g. as a "
-            "result of calling the PEP517 'prepare_metadata_for_build_wheel' "
-            "method)",
+            (
+                "directory where a pre-generated dist-info can be found (e.g. as a "
+                "result of calling the PEP517 'prepare_metadata_for_build_wheel' "
+                "method)"
+            ),
         ),
     ]
 
-    boolean_options = ["keep-temp", "skip-build", "relative", "universal"]
+    boolean_options: ClassVar[list[str]] = [
+        "keep-temp",
+        "skip-build",
+        "relative",
+        "universal",
+    ]
 
     def initialize_options(self) -> None:
         self.bdist_dir: str | None = None
@@ -281,11 +342,11 @@ class bdist_wheel(Command):
         if not re.match(PY_LIMITED_API_PATTERN, self.py_limited_api):
             raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
 
-        if sysconfig.get_config_var("Py_GIL_DISABLED"):
+        if sysconfig.get_config_var("Py_GIL_DISABLED") and _python_version() < (3, 15):
             raise ValueError(
                 f"`py_limited_api={self.py_limited_api!r}` not supported. "
-                "`Py_LIMITED_API` is currently incompatible with "
-                "`Py_GIL_DISABLED`. "
+                "`Py_LIMITED_API` is incompatible with `Py_GIL_DISABLED` "
+                "on Python 3.14 and older. "
                 "See https://github.com/python/cpython/issues/111506."
             )
 
@@ -299,6 +360,18 @@ class bdist_wheel(Command):
         if self.build_number:
             components.append(self.build_number)
         return "-".join(components)
+
+    @property
+    def abi_tag(self) -> str:
+        impl_name = _interpreter_name()
+        impl_ver = "".join(map(str, _python_version()))
+        tag = None
+        if self.py_limited_api:
+            tag = stable_abi_tag(impl_name, impl_ver)
+        if tag is None:
+            # not a stable ABI build, use version-specific ABI tag
+            tag = str(get_abi_tag()).lower()
+        return tag
 
     def get_tag(self) -> tuple[str, str, str]:
         # bdist sets self.plat_name if unset, we should only use it for purepy
@@ -339,24 +412,35 @@ class bdist_wheel(Command):
                 impl = self.python_tag
             tag = (impl, "none", plat_name)
         else:
-            impl_name = tags.interpreter_name()
-            impl_ver = tags.interpreter_version()
+            impl_name = _interpreter_name()
+            python_version = _python_version()
+            impl_ver = "".join(map(str, python_version))
             impl = impl_name + impl_ver
-            # We don't work on CPython 3.1, 3.0.
-            if self.py_limited_api and (impl_name + impl_ver).startswith("cp3"):
+            abi_tag = self.abi_tag
+            if "abi3" in abi_tag:
+                assert self.py_limited_api is not False
                 impl = self.py_limited_api
-                abi_tag = "abi3"
-            else:
-                abi_tag = str(get_abi_tag()).lower()
             tag = (impl, abi_tag, plat_name)
-            # issue gh-374: allow overriding plat_name
-            supported_tags = [
-                (t.interpreter, t.abi, plat_name) for t in tags.sys_tags()
-            ]
-            assert tag in supported_tags, (
-                f"would build wheel with unsupported tag {tag}"
-            )
+            self._validate_tag(tag)
         return tag
+
+    def _validate_tag(self, tag: tuple[str, str, str]) -> None:
+        impl_name = _interpreter_name()
+        python_version = _python_version()
+        abis = [str(get_abi_tag()).lower()]
+        # issue gh-374: allow overriding plat_name
+        if impl_name == "cp":
+            supported_tags = tags.cpython_tags(
+                python_version=python_version, abis=abis, platforms=[tag[2]]
+            )
+        else:
+            supported_tags = tags.generic_tags(
+                interpreter=tag[0], abis=abis, platforms=[tag[2]]
+            )
+        # A compressed ABI tag need only match one of the target's supported tags.
+        assert not tags.parse_tag("-".join(tag)).isdisjoint(supported_tags), (
+            f"would build wheel with unsupported tag {tag}"
+        )
 
     def run(self):
         build_scripts = self.reinitialize_command("build_scripts")
@@ -443,14 +527,13 @@ class bdist_wheel(Command):
         # Add to 'Distribution.dist_files' so that the "upload" command works
         getattr(self.distribution, "dist_files", []).append((
             "bdist_wheel",
-            f"{sys.version_info.major}.{sys.version_info.minor}",
+            ".".join(map(str, _python_version())),
             wheel_path,
         ))
 
         if not self.keep_temp:
             log.info(f"removing {self.bdist_dir}")
-            if not self.dry_run:
-                _shutil.rmtree(self.bdist_dir)
+            _shutil.rmtree(self.bdist_dir)
 
     def write_wheelfile(
         self, wheelfile_base: str, generator: str = f"setuptools ({__version__})"
@@ -469,7 +552,7 @@ class bdist_wheel(Command):
         for impl in impl_tag.split("."):
             for abi in abi_tag.split("."):
                 for plat in plat_tag.split("."):
-                    msg["Tag"] = "-".join((impl, abi, plat))
+                    msg["Tag"] = f"{impl}-{abi}-{plat}"
 
         wheelfile_path = os.path.join(wheelfile_base, "WHEEL")
         log.info(f"creating {wheelfile_path}")

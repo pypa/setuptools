@@ -1,5 +1,6 @@
-class Error(Exception):
-    """Some compile/link operation failed."""
+"""Exceptions raised by the C/C++ compilers."""
+
+from ..errors import Error
 
 
 class PreprocessError(Error):
@@ -18,7 +19,3 @@ class LibError(Error):
 class LinkError(Error):
     """Failure to link one or more C/C++ object files into an executable
     or shared library file."""
-
-
-class UnknownFileType(Error):
-    """Attempt to process an unknown file type."""

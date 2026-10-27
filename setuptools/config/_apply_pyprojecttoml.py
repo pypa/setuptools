@@ -12,13 +12,13 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from email.headerregistry import Address
 from functools import partial, reduce
 from inspect import cleandoc
 from itertools import chain
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from .. import _static
 from .._path import StrPath
@@ -27,7 +27,7 @@ from ..extension import Extension
 from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from typing import TypeAlias
 
     from setuptools._importlib import metadata
     from setuptools.dist import Distribution
@@ -36,8 +36,8 @@ if TYPE_CHECKING:
 
 
 EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
-_ProjectReadmeValue: TypeAlias = Union[str, dict[str, str]]
-_Correspondence: TypeAlias = Callable[["Distribution", Any, Union[StrPath, None]], None]
+_ProjectReadmeValue: TypeAlias = str | dict[str, str]
+_Correspondence: TypeAlias = Callable[["Distribution", Any, StrPath | None], None]
 _T = TypeVar("_T")
 
 _logger = logging.getLogger(__name__)
@@ -102,7 +102,7 @@ def _apply_tool_table(dist: Distribution, config: dict, filename: StrPath):
             "'tool.setuptools.license-files' is deprecated in favor of "
             "'project.license-files' (available on setuptools>=77.0.0).",
             see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
-            due_date=(2026, 2, 18),  # Warning introduced on 2025-02-18
+            due_date=(2027, 2, 18),  # Warning introduced on 2025-02-18
         )
 
     for field, value in tool_table.items():
@@ -214,7 +214,7 @@ def _license(dist: Distribution, val: str | dict, root_dir: StrPath | None):
             "`project.license`. You can also use `project.license-files`. "
             "(Both options available on setuptools>=77.0.0).",
             see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
-            due_date=(2026, 2, 18),  # Introduced on 2025-02-18
+            due_date=(2027, 2, 18),  # Introduced on 2025-02-18
         )
         if "file" in val:
             # XXX: Is it completely safe to assume static?
@@ -268,8 +268,16 @@ def _optional_dependencies(dist: Distribution, val: dict, _root_dir: StrPath | N
 def _ext_modules(dist: Distribution, val: list[dict]) -> list[Extension]:
     existing = dist.ext_modules or []
     args = ({k.replace("-", "_"): v for k, v in x.items()} for x in val)
-    new = [Extension(**kw) for kw in args]
+    new = (Extension(**_adjust_ext_attrs(kw)) for kw in args)
     return [*existing, *new]
+
+
+def _adjust_ext_attrs(attrs: dict) -> dict:
+    # https://github.com/pypa/setuptools/issues/4810
+    # In TOML there is no differentiation between tuples and lists,
+    # and distutils requires tuples...
+    attrs["define_macros"] = list(map(tuple, attrs.get("define_macros") or []))
+    return attrs
 
 
 def _noop(_dist: Distribution, val: _T) -> _T:
@@ -347,7 +355,7 @@ def _load_ep(ep: metadata.EntryPoint) -> tuple[str, type] | None:
     # Ignore all the errors
     try:
         return (ep.name, ep.load())
-    except Exception as ex:
+    except Exception as ex:  # noqa: BLE001 # intentional broad fallback
         msg = f"{ex.__class__.__name__} while trying to load entry-point {ep.name}"
         _logger.warning(f"{msg}: {ex}")
         return None

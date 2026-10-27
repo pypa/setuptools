@@ -70,6 +70,8 @@ def update_setuptools():
     deps = load_deps()
     clean(vendor)
     install_deps(deps, vendor)
+    # uv only installs non-portable shebangs (#5159)
+    (vendor / 'bin').rmtree()
 
 
 __name__ == '__main__' and update_vendored()

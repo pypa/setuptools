@@ -1,4 +1,3 @@
 [tool.towncrier]
 title_format = "{version}"
-# workaround for sphinx-contrib/sphinxcontrib-towncrier#83
-directory = "newsfragments"
+directory = "newsfragments"  # jaraco/skeleton#184

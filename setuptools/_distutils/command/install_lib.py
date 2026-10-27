@@ -35,7 +35,7 @@ class install_lib(Command):
     # decides both whether to generate .pyc files and what level of
     # optimization to use.
 
-    user_options = [
+    user_options: ClassVar = [
         ('install-dir=', 'd', "directory to install to"),
         ('build-dir=', 'b', "build directory (where to install from)"),
         ('force', 'f', "force installation (overwrite existing files)"),
@@ -44,14 +44,16 @@ class install_lib(Command):
         (
             'optimize=',
             'O',
-            "also compile with optimization: -O1 for \"python -O\", "
-            "-O2 for \"python -OO\", and -O0 to disable [default: -O0]",
+            (
+                "also compile with optimization: -O1 for \"python -O\", "
+                "-O2 for \"python -OO\", and -O0 to disable [default: -O0]"
+            ),
         ),
         ('skip-build', None, "skip the build steps"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['force', 'compile', 'skip-build']
-    negative_opt: ClassVar[dict[str, str]] = {'no-compile': 'compile'}
+    boolean_options: ClassVar = ['force', 'compile', 'skip-build']
+    negative_opt: ClassVar = {'no-compile': 'compile'}
 
     def initialize_options(self):
         # let the 'install' command dictate our installation directory
@@ -142,7 +144,6 @@ class install_lib(Command):
                 optimize=0,
                 force=self.force,
                 prefix=install_root,
-                dry_run=self.dry_run,
             )
         if self.optimize > 0:
             byte_compile(
@@ -151,7 +152,6 @@ class install_lib(Command):
                 force=self.force,
                 prefix=install_root,
                 verbose=self.verbose,
-                dry_run=self.dry_run,
             )
 
     # -- Utility methods -----------------------------------------------

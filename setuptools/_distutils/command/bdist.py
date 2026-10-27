@@ -48,13 +48,15 @@ class ListCompat(dict[str, tuple[str, str]]):
 class bdist(Command):
     description = "create a built (binary) distribution"
 
-    user_options = [
+    user_options: ClassVar = [
         ('bdist-base=', 'b', "temporary directory for creating built distributions"),
         (
             'plat-name=',
             'p',
-            "platform name to embed in generated filenames "
-            f"[default: {get_platform()}]",
+            (
+                "platform name to embed in generated filenames "
+                f"[default: {get_platform()}]"
+            ),
         ),
         ('formats=', None, "formats for distribution (comma-separated list)"),
         (
@@ -75,7 +77,7 @@ class bdist(Command):
         ),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['skip-build']
+    boolean_options: ClassVar = ['skip-build']
 
     help_options: ClassVar[list[tuple[str, str | None, str, Callable[[], object]]]] = [
         ('help-formats', None, "lists available distribution formats", show_formats),
@@ -86,7 +88,7 @@ class bdist(Command):
 
     # This won't do in reality: will need to distinguish RPM-ish Linux,
     # Debian-ish Linux, Solaris, FreeBSD, ..., Windows, Mac OS.
-    default_format: ClassVar[dict[str, str]] = {'posix': 'gztar', 'nt': 'zip'}
+    default_format: ClassVar = {'posix': 'gztar', 'nt': 'zip'}
 
     # Define commands in preferred order for the --help-formats option
     format_commands = ListCompat({

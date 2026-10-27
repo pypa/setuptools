@@ -52,10 +52,10 @@ def _fetch_build_eggs(dist, requires: _reqs._StrOrIter) -> list[metadata.Distrib
         req for req in missing_reqs if not req.marker or req.marker.evaluate()
     )
     resolved_dists = [_fetch_build_egg_no_warn(dist, req) for req in needed_reqs]
-    for dist in resolved_dists:
-        # dist.locate_file('') is the directory containing EGG-INFO, where the importabl
+    for resolved_dist in resolved_dists:
+        # locate_file('') is the directory containing EGG-INFO, where the importable
         # contents can be found.
-        sys.path.insert(0, str(dist.locate_file('')))
+        sys.path.insert(0, str(resolved_dist.locate_file('')))
     return resolved_dists
 
 

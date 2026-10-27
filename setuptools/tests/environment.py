@@ -3,6 +3,7 @@ import subprocess
 import sys
 import unicodedata
 from subprocess import PIPE as _PIPE, Popen as _Popen
+from typing import ClassVar
 
 import jaraco.envs
 
@@ -13,7 +14,7 @@ class VirtualEnv(jaraco.envs.VirtualEnv):
     # importing setuptools, and thus leading to BackendInvalid errors
     # when upgrading Setuptools. Bypass this behavior by avoiding the
     # early availability and need to upgrade.
-    create_opts = ['--no-setuptools']
+    create_opts: ClassVar[list[str]] = ['--no-setuptools']
 
     def run(self, cmd, *args, **kwargs):
         cmd = [self.exe(cmd[0])] + cmd[1:]
@@ -28,8 +29,7 @@ class VirtualEnv(jaraco.envs.VirtualEnv):
         # environment with removed PYTHONPATH to the subprocesses.
         if "env" not in kwargs:
             env = dict(os.environ)
-            if "PYTHONPATH" in env:
-                del env["PYTHONPATH"]
+            env.pop("PYTHONPATH", None)
             kwargs["env"] = env
         return subprocess.check_output(cmd, *args, **kwargs)
 
@@ -49,7 +49,7 @@ def run_setup_py(cmd, pypath=None, path=None, data_stream=0, env=None):
     code directly to prevent accidental behavior issues
     """
     if env is None:
-        env = dict()
+        env = {}
         for envname in os.environ:
             env[envname] = os.environ[envname]
 

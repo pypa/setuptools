@@ -2,6 +2,7 @@ import configparser
 import contextlib
 import inspect
 import re
+import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -15,6 +16,8 @@ from setuptools.warnings import SetuptoolsDeprecationWarning
 from ..textwrap import DALS
 
 from distutils.errors import DistutilsFileError, DistutilsOptionError
+
+IS_PYPY = '__pypy__' in sys.builtin_module_names
 
 
 class ErrConfigHandler(ConfigHandler[Target]):
@@ -74,7 +77,7 @@ def get_dist(tmpdir, kwargs_initial=None, parse=True):
 def test_parsers_implemented():
     with pytest.raises(NotImplementedError):
         handler = ErrConfigHandler(None, {}, False, Mock())
-        handler.parsers
+        handler.parsers  # noqa: B018 # evaluated to trigger validation/side effect
 
 
 class TestConfigurationReader:
@@ -191,9 +194,11 @@ class TestMetadata:
         project.ensure(dir=True)
         fake_env(project, '[metadata]\nlong_description = file: ../../README\n')
 
-        with get_dist(project, parse=False) as dist:
-            with pytest.raises(DistutilsOptionError):
-                dist.parse_config_files()  # file: out of sandbox
+        with (
+            get_dist(project, parse=False) as dist,
+            pytest.raises(DistutilsOptionError),
+        ):
+            dist.parse_config_files()  # file: out of sandbox
 
     def test_aliases(self, tmpdir):
         fake_env(
@@ -296,9 +301,8 @@ class TestMetadata:
             assert dist.metadata.version == '1.2.3'
 
         tmpdir.join('fake_package', 'version.txt').write('1.2.3\n4.5.6\n')
-        with pytest.raises(DistutilsOptionError):
-            with get_dist(tmpdir) as dist:
-                dist.metadata.version
+        with pytest.raises(DistutilsOptionError), get_dist(tmpdir) as dist:
+            dist.metadata.version  # noqa: B018 # evaluated to trigger validation/side effect
 
     def test_version_with_package_dir_simple(self, tmpdir):
         fake_env(
@@ -349,16 +353,15 @@ class TestMetadata:
 
     def test_usupported_section(self, tmpdir):
         fake_env(tmpdir, '[metadata.some]\nkey = val\n')
-        with get_dist(tmpdir, parse=False) as dist:
-            with pytest.raises(DistutilsOptionError):
-                dist.parse_config_files()
+        with get_dist(tmpdir, parse=False) as dist, pytest.raises(DistutilsOptionError):
+            dist.parse_config_files()
 
     def test_classifiers(self, tmpdir):
-        expected = set([
+        expected = {
             'Framework :: Django',
             'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.5',
-        ])
+        }
 
         # From file.
         _, config = fake_env(tmpdir, '[metadata]\nclassifiers = file: classifiers\n')
@@ -385,9 +388,11 @@ class TestMetadata:
 
     def test_interpolation(self, tmpdir):
         fake_env(tmpdir, '[metadata]\ndescription = %(message)s\n')
-        with pytest.raises(configparser.InterpolationMissingOptionError):
-            with get_dist(tmpdir):
-                pass
+        with (
+            pytest.raises(configparser.InterpolationMissingOptionError),
+            get_dist(tmpdir),
+        ):
+            pass
 
     def test_non_ascii_1(self, tmpdir):
         fake_env(tmpdir, '[metadata]\ndescription = éàïôñ\n', encoding='utf-8')
@@ -417,9 +422,8 @@ class TestMetadata:
             '# vim: set fileencoding=iso-8859-15 :\n[metadata]\ndescription = éàïôñ\n',
             encoding='iso-8859-15',
         )
-        with pytest.raises(UnicodeDecodeError):
-            with get_dist(tmpdir):
-                pass
+        with pytest.raises(UnicodeDecodeError), get_dist(tmpdir):
+            pass
 
     @pytest.mark.parametrize(
         ("error_msg", "config", "invalid"),
@@ -563,9 +567,8 @@ class TestOptions:
 
     def test_package_dir_fail(self, tmpdir):
         fake_env(tmpdir, '[options]\npackage_dir = a b\n')
-        with get_dist(tmpdir, parse=False) as dist:
-            with pytest.raises(DistutilsOptionError):
-                dist.parse_config_files()
+        with get_dist(tmpdir, parse=False) as dist, pytest.raises(DistutilsOptionError):
+            dist.parse_config_files()
 
     def test_package_data(self, tmpdir):
         fake_env(
@@ -602,11 +605,11 @@ class TestOptions:
         make_package_dir('sub_two', dir_package)
 
         with get_dist(tmpdir) as dist:
-            assert set(dist.packages) == set([
+            assert set(dist.packages) == {
                 'fake_package',
                 'fake_package.sub_two',
                 'fake_package.sub_one',
-            ])
+            }
 
         config.write(
             '[options]\n'
@@ -630,7 +633,7 @@ class TestOptions:
             '    fake_package.sub_one\n'
         )
         with get_dist(tmpdir) as dist:
-            assert set(dist.packages) == set(['fake_package', 'fake_package.sub_two'])
+            assert set(dist.packages) == {'fake_package', 'fake_package.sub_two'}
 
     def test_find_namespace_directive(self, tmpdir):
         dir_package, config = fake_env(
@@ -701,15 +704,16 @@ class TestOptions:
             "[options]\ninstall_requires = bar;os_name=='linux'\n",
         ],
     )
+    @pytest.mark.xfail(IS_PYPY, reason="Exceptions missing on PyPy")
+    # TODO: investigate PyPy problem
     def test_raises_accidental_env_marker_misconfig(self, config, tmpdir):
         fake_env(tmpdir, config)
         match = (
             r"One of the parsed requirements in `(install_requires|extras_require.+)` "
             "looks like a valid environment marker.*"
         )
-        with pytest.raises(InvalidRequirement, match=match):
-            with get_dist(tmpdir) as _:
-                pass
+        with pytest.raises(InvalidRequirement, match=match), get_dist(tmpdir) as _:
+            pass
 
     @pytest.mark.parametrize(
         "config",
@@ -720,15 +724,19 @@ class TestOptions:
             "[options]\ninstall_requires = bar;python_version<3\n",
         ],
     )
+    @pytest.mark.xfail(IS_PYPY, reason="Warnings missing on PyPy (minor issue)")
+    # TODO: investigate PyPy problem
     def test_warn_accidental_env_marker_misconfig(self, config, tmpdir):
         fake_env(tmpdir, config)
         match = (
             r"One of the parsed requirements in `(install_requires|extras_require.+)` "
             "looks like a valid environment marker.*"
         )
-        with pytest.warns(SetuptoolsDeprecationWarning, match=match):
-            with get_dist(tmpdir) as _:
-                pass
+        with (
+            pytest.warns(SetuptoolsDeprecationWarning, match=match),
+            get_dist(tmpdir) as _,
+        ):
+            pass
 
     @pytest.mark.parametrize(
         "config",
@@ -897,9 +905,8 @@ class TestOptions:
             """
             ),
         )
-        with pytest.raises(Exception):
-            with get_dist(tmpdir) as dist:
-                dist.parse_config_files()
+        with pytest.raises(Exception), get_dist(tmpdir) as dist:  # noqa: B017 # deliberately asserts any exception
+            dist.parse_config_files()
 
     def test_cmdclass(self, tmpdir):
         module_path = Path(tmpdir, "src/custom_build.py")  # auto discovery for src

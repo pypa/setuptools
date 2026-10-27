@@ -1,3 +1,229 @@
+v84.2.1
+=======
+
+Bugfixes
+--------
+
+- Changed wheel tags and stable-ABI validation to use sysconfig data. (#5360)
+- Fixed unimportable extensions on free-threaded Python 3.13 and 3.14 when
+  ``Extension.py_limited_api`` is enabled. These builds now use their
+  version-specific extension suffix instead of using the unsupported ``.abi3t``
+  suffix. (#5363)
+
+
+Improved Documentation
+----------------------
+
+- Replaced broken link to Python Eggs documentation with an archived version from the Wayback Machine. (#1929)
+
+
+v84.2.0
+=======
+
+Features
+--------
+
+- Added support for building abi3t extensions and abi3.abi3t wheels on Python
+  3.15 and newer. See :pep:`803` and the `Python 3.15 "What's New" entry
+  <https://docs.python.org/3.15/whatsnew/3.15.html#pep-803-abi3t-stable-abi-for-free-threaded-builds>`_
+  for more details. (#5193)
+- Updated vendored packaging version to 26.3, which adds support for the
+  ``abi3t`` tag from :pep:`803`. (#5361)
+
+
+Bugfixes
+--------
+
+- Use target sysconfig data for stable-ABI extension filenames. (#5351)
+
+
+v84.1.0
+=======
+
+Features
+--------
+
+- ``setuptools.archive_util`` now raises the new ``UnsafeMember`` exception when
+  an archive member would be extracted outside of the extraction directory,
+  where previously such a member was silently skipped. Aborting makes a
+  malicious or malformed archive visible to the caller instead of yielding a
+  quietly incomplete extraction, and matches the behavior of the standard
+  library's ``tarfile`` extraction filters.
+
+
+Bugfixes
+--------
+
+- ``Wheel.install_as_egg`` no longer creates namespace package directories
+  outside of the destination egg directory. Entries in a wheel's
+  ``namespace_packages.txt`` were split on ``.`` and passed straight to
+  ``os.path.join``, so an entry that was absolute, drive-qualified, or UNC
+  discarded the destination and placed an ``__init__.py`` at a path chosen by
+  the wheel. Namespace entries are now validated as dotted module names on
+  every platform -- see GHSA-xmj3-9gf7-h52w.
+
+  This code path is reached only by the deprecated ``setup_requires``
+  mechanism when ``setup()`` is invoked outside a PEP 517 frontend; the
+  setuptools build backend never reaches it.
+- ``setuptools.archive_util`` no longer extracts archive members outside of the
+  requested extraction directory. Both the tar and zip formats specify ``/`` as
+  the only path separator, but the guard against ``..`` components split member
+  names on ``/`` alone, so a name such as ``..\escaped.txt`` was treated as a
+  single component and then resolved as a traversal by the filesystem on
+  Windows. Member names containing a backslash, a drive letter, or a UNC prefix
+  are now rejected on every platform, as are members whose resolved destination
+  falls outside the extraction directory -- see GHSA-grgh-hr87-3jpw.
+
+
+v84.0.0
+=======
+
+Features
+--------
+
+- Newline-separated ``keywords`` and ``platforms``, which are invalid and corrupt the generated metadata (pypa/setuptools#4887), are now handled forgivingly: each line is treated as a separate item and a deprecation warning is emitted. Newlines were never a valid separator for these fields -- the `old specification <https://peps.python.org/pep-0345/>`_ separated items with spaces and the current one uses commas. (#4887)
+- ``Extension`` is now a dataclass, exposing type annotations for its constructor arguments so subclasses (e.g. in Setuptools) can inherit them without redeclaring each parameter. Passing unknown keyword arguments is now deprecated. (pypa/distutils#373) (#5022)
+- The C compiler modules now emit log messages through their own ``compilers.C.*`` loggers instead of the distutils root logger, part of decoupling the compilers package from distutils. The logger names are normalized to a stable ``compilers.C.*`` prefix so they remain constant as the package migrates toward a standalone ``compilers.C`` distribution. (#5266)
+- The C compilers gained a ``Compiler.call`` method -- a thin wrapper over ``subprocess.check_call`` (with macOS deployment-target env injection) that is the modern replacement for ``Compiler.spawn``. The compilers no longer depend on ``distutils.spawn``, ``distutils.dir_util``, ``distutils.file_util``, ``distutils._modified``, or ``distutils.util.execute``/``split_quoted``: the generic ``newer``/``newer_group`` and ``split_quoted`` helpers are vendored into the ``compilers`` package, and ``Compiler.mkpath``/``move_file``/``execute`` are implemented directly on the standard library (``os.makedirs``/``shutil.move``). The methods are retained for backward compatibility. (#5267)
+- The compilers no longer depend on ``distutils.util``, ``distutils.version``, ``distutils.compat``, or ``distutils._macos_compat``. The platform-identification helpers (``get_platform``/``get_host_platform``/``is_mingw``) now live in ``distutils.compilers.platform.detect`` and the macOS deployment-target logic and ``compiler_fixup`` in ``distutils.compilers.platform.macos``; ``CygwinCCompiler.gcc_version`` returns a ``packaging.version.Version``. ``distutils.util`` re-exports the platform/macOS helpers from their new homes for backward compatibility rather than keeping duplicate copies. (sysconfig lookups still route through distutils pending its own decoupling.) (#5268)
+- The compilers now read their build configuration from the standard library's ``sysconfig`` instead of ``distutils.sysconfig``. Per-compiler customization -- previously ``distutils.sysconfig.customize_compiler`` -- has moved into ``Compiler.configure_system()``: a no-op on the base class, with ``UnixCCompiler`` applying the compiler/flag/archiver settings CPython recorded in ``sysconfig`` (and the usual ``CC``/``CFLAGS``/``LDSHARED``/… environment overrides). ``distutils.sysconfig.customize_compiler`` is retained as a thin wrapper that calls ``compiler.configure_system()``. (#5269)
+
+
+Bugfixes
+--------
+
+- The MSVC linker now passes its arguments through a response file when the command line would exceed the Windows maximum length, fixing failures when linking a large number of objects. (#4177)
+- The Cygwin and MinGW compilers now pass ``-O1`` instead of a bare ``-O``. The two are equivalent to GCC, but ``cc1`` rejected the bare form when building 32-bit extensions with ``-m32``. -- by :user:`dchaudhari7177` (#4873)
+- ``copy_file`` now preserves the full precision of the source's modification time, so a copy is no longer considered older than its source on filesystems with sub-second timestamp resolution. (pypa/distutils#379) (#5079)
+- Setuptools wheels no longer bundled the project's own test modules. -- by :user:`itscloud0` (#5212)
+- ``build_ext`` no longer fails when cross-compiling with a compiler other than MSVC (such as MinGW). ``Compiler`` now provides a no-op ``initialize()`` that non-MSVC compilers inherit. (pypa/distutils#399)
+
+
+Improved Documentation
+----------------------
+
+- Clarified what "correspond exactly to the directory structure" means in
+  the ``packages`` section of the Package Discovery user guide. (#4109)
+- Documented how ``bdist_wheel``'s ``py_limited_api`` option controls
+  ``abi3`` wheel tagging for extension modules -- by :user:`Himanshuagrawal4` (#4741)
+
+
+Deprecations and Removals
+-------------------------
+
+- ``Compiler.spawn`` is deprecated in favor of the new ``Compiler.call``. ``call`` raises native ``subprocess`` exceptions; ``spawn`` remains as a shim that emits a ``DeprecationWarning`` and translates them to ``DistutilsExecError``. The MSVC ``spawn`` compatibility shim for third-party monkeypatches predating the ``env`` argument (numpy.distutils before 1.19, per pypa/distutils#15) has been removed. ``distutils.spawn.spawn`` is likewise reduced to a thin wrapper around ``subprocess.check_call``: it no longer resolves ``cmd[0]`` via ``shutil.which`` (``subprocess`` searches ``PATH`` itself) nor injects ``MACOSX_DEPLOYMENT_TARGET`` (that now lives with the compilers, the only callers to which it applied). (#5267)
+- Building an extension with a ``MACOSX_DEPLOYMENT_TARGET`` lower than the interpreter's configured value now raises ``compilers.errors.PlatformError`` instead of ``distutils.errors.DistutilsPlatformError`` (the macOS deployment-target check moved into the compilers package). ``CygwinCCompiler.gcc_version`` returns a ``packaging.version.Version`` rather than the removed ``distutils.version.LooseVersion``. Completing the transition begun in pypa/distutils#246, ``UnixCCompiler.runtime_library_dir_option`` now returns the ``["-Wl,--enable-new-dtags", "-Wl,-rpath,<dir>"]`` list directly for GNU ld rather than collapsing it into a single string, and the temporary ``distutils.compat.consolidate_linker_args`` shim has been removed. (#5268)
+- The compilers now define their own exception vocabulary instead of borrowing distutils' framework errors. Language-agnostic exceptions (``Error``, ``UnknownFileType``, and a new ``PlatformError``) live at ``distutils.compilers.errors``, leaving room for future ``compilers.<language>`` siblings; the C/C++-specific ``CompileError``/``LinkError``/``LibError``/``PreprocessError`` remain in ``distutils.compilers.C.errors``. The compilers now raise ``compilers.errors.PlatformError`` where they previously raised ``distutils.errors.DistutilsPlatformError``/``DistutilsModuleError``, and ``compilers._modified.newer`` raises the stdlib ``FileNotFoundError``. ``distutils.errors`` keeps its own framework exceptions and re-exports the compiler ones (``CCompilerError``, ``CompileError``, etc.) for backward compatibility; because ``CCompilerError`` is ``compilers.errors.Error``, code catching it (as distutils' top-level handlers do) still catches the new ``PlatformError``. (#5270)
+- ``customize_compiler`` now asserts that the compiler-related config variables (``CC``, ``CXX``, ``CFLAGS``, etc.) resolve to strings, raising ``AssertionError`` if any are unexpectedly ``None`` rather than failing later with a less clear error. (pypa/distutils#363)
+
+
+v83.0.0
+=======
+
+Features
+--------
+
+- Require Python 3.10 or later.
+
+
+Bugfixes
+--------
+
+- ``MANIFEST.in`` matching (via ``FileList``) is now insensitive to Unicode
+  normalization form. A pattern authored in one form (e.g. NFC, as typically
+  saved by editors) now matches a file whose name is stored on disk in another
+  (e.g. NFD, as produced by macOS APFS/HFS+). Previously an ``exclude``,
+  ``global-exclude``, ``recursive-exclude``, or ``prune`` rule could silently
+  fail to drop a non-ASCII-named file from the source distribution, publishing
+  it despite the exclusion -- see GHSA-h35f-9h28-mq5c.
+
+
+Deprecations and Removals
+-------------------------
+
+- Synced with pypa/distutils@d7633fbed including removal of dry_run support (pypa/distutils#334).
+
+
+v82.0.1
+=======
+
+Bugfixes
+--------
+
+- Fix the loading of ``launcher manifest.xml`` file. (#5047)
+- Replaced deprecated ``json.__version__`` with fixture in tests. (#5186)
+
+
+Improved Documentation
+----------------------
+
+- Add advice about how to improve predictability when installing sdists. (#5168)
+
+
+Misc
+----
+
+- #4941, #5157, #5169, #5175
+
+
+v82.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- ``pkg_resources`` has been removed from Setuptools. Most common uses of ``pkg_resources`` have been superseded by the `importlib.resources <https://docs.python.org/3/library/importlib.resources.html>`_ and `importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_ projects. Projects and environments relying on ``pkg_resources`` for namespace packages or other behavior should depend on older versions of ``setuptools``. (#3085)
+
+
+v81.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for the --dry-run parameter to setup.py. This one feature by its nature threads through lots of core and ancillary functionality, adding complexity and friction. Removal of this parameter will help decouple the compiler functionality from distutils and thus the eventual full integration of distutils. These changes do affect some class and function signatures, so any derivative functionality may require some compatibility shims to support their expected interface. Please report any issues to the Setuptools project for investigation. (#4872)
+
+
+v80.10.2
+========
+
+Bugfixes
+--------
+
+- Update vendored dependencies. (#5159)
+
+
+Misc
+----
+
+- #5115, #5128
+
+
+v80.10.1
+========
+
+Misc
+----
+
+- #5152
+
+
+v80.10.0
+========
+
+Features
+--------
+
+- Remove post-release tags on setuptools' own build. (#4530)
+- Refreshed vendored dependencies. (#5139)
+
+
+Misc
+----
+
+- #5033
+
+
 v80.9.0
 =======
 
@@ -327,6 +553,25 @@ Bugfixes
 
 - Restored implicit distutils.ccompiler import for g-ir-scanner. (#4871)
 - Restore ``distutils.ccompiler.compiler_class`` -- by :user:`Avasam` (#4876)
+
+
+v75.3.4
+=======
+
+Bugfixes
+--------
+
+- Backport CVE-47273 from 78.1.1 for Python 3.8. (#4946)
+- Reverted distutils changes that broke the monkey patching of command classes. (#4902)
+
+
+v75.3.3
+=======
+
+Bugfixes
+--------
+
+- Backported security fix for package index to 75.3.x for Python 3.8. (#5009)
 
 
 v75.3.2
@@ -710,7 +955,7 @@ Features
 
 - Added return types to typed public functions -- by :user:`Avasam`
 
-  Marked `pkg_resources` as ``py.typed`` -- by :user:`Avasam` (#4409)
+  Marked ``pkg_resources`` as ``py.typed`` -- by :user:`Avasam` (#4409)
 
 
 Misc
@@ -844,7 +1089,7 @@ Features
 - Improved `AttributeError` error message if ``pkg_resources.EntryPoint.require`` is called without extras or distribution
   Gracefully "do nothing" when trying to activate a ``pkg_resources.Distribution`` with a `None` location, rather than raising a `TypeError`
   -- by :user:`Avasam` (#4262)
-- Typed the dynamically defined variables from `pkg_resources` -- by :user:`Avasam` (#4267)
+- Typed the dynamically defined variables from ``pkg_resources`` -- by :user:`Avasam` (#4267)
 - Modernized and refactored VCS handling in package_index. (#4332)
 
 
@@ -974,8 +1219,8 @@ Features
 Bugfixes
 --------
 
-- Clarify some `pkg_resources` methods return `bytes`, not `str`. Also return an empty `bytes` in ``EmptyProvider._get`` -- by :user:`Avasam` (#4243)
-- Return an empty `list` by default in ``pkg_resources.ResourceManager.cleanup_resources`` -- by :user:`Avasam` (#4244)
+- Clarify some ``pkg_resources`` methods return ``bytes``, not ``str``. Also return an empty ``bytes`` in ``EmptyProvider._get`` -- by :user:`Avasam` (#4243)
+- Return an empty ``list`` by default in ``pkg_resources.ResourceManager.cleanup_resources`` -- by :user:`Avasam` (#4244)
 - Made ``pkg_resoursces.NullProvider``'s ``has_metadata`` and ``metadata_isdir`` methods return actual booleans like all other Providers. -- by :user:`Avasam` (#4254)
 
 
@@ -1008,7 +1253,7 @@ Features
 --------
 
 - Updated and removed obsolete Python < 3.8 code and comments. -- by :user:`Avasam` (#4096)
-- Updated `pkg_resources` to use stdlib `importlib.machinery` instead of ``importlib_machinery`` -- by :user:`Avasam` (#4097)
+- Updated ``pkg_resources`` to use stdlib ``importlib.machinery`` instead of ``importlib_machinery`` -- by :user:`Avasam` (#4097)
 
 
 Bugfixes
@@ -5638,7 +5883,7 @@ v20.10.0
   by earlier versions of Python. Except on Python 2.6,
   order is preserved when existing settings are present.
 * #556: Update to Packaging 16.7, restoring support
-  for deprecated ``python_implmentation`` marker.
+  for deprecated ``python_implementation`` marker.
 * #555: Upload command now prompts for a password
   when uploading to PyPI (or other repository) if no
   password is present in .pypirc or in the keyring.

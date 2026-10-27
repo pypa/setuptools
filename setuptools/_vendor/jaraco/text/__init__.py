@@ -1,15 +1,17 @@
-import re
-import itertools
-import textwrap
 import functools
+import itertools
+import re
+import textwrap
+
+from typing import Iterable
 
 try:
     from importlib.resources import files  # type: ignore
 except ImportError:  # pragma: nocover
     from importlib_resources import files  # type: ignore
 
-from jaraco.functools import compose, method_cache
 from jaraco.context import ExceptionTrap
+from jaraco.functools import compose, method_cache
 
 
 def substitution(old, new):
@@ -554,7 +556,14 @@ def yield_lines(iterable):
 
 @yield_lines.register(str)
 def _(text):
-    return filter(_nonblank, map(str.strip, text.splitlines()))
+    return clean(text.splitlines())
+
+
+def clean(lines: Iterable[str]):
+    """
+    Yield non-blank, non-comment elements from lines.
+    """
+    return filter(_nonblank, map(str.strip, lines))
 
 
 def drop_comment(line):
@@ -622,3 +631,17 @@ def read_newlines(filename, limit=1024):
     with open(filename, encoding='utf-8') as fp:
         fp.read(limit)
     return fp.newlines
+
+
+def lines_from(input):
+    """
+    Generate lines from a :class:`importlib.resources.abc.Traversable` path.
+
+    >>> lines = lines_from(files(__name__).joinpath('Lorem ipsum.txt'))
+    >>> next(lines)
+    'Lorem ipsum...'
+    >>> next(lines)
+    'Curabitur pretium...'
+    """
+    with input.open(encoding='utf-8') as stream:
+        yield from stream

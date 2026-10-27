@@ -118,7 +118,7 @@ class DistutilsMetaFinder:
 
         try:
             mod = importlib.import_module('setuptools._distutils')
-        except Exception:
+        except Exception:  # noqa: BLE001 # intentional broad fallback
             # There are a couple of cases where setuptools._distutils
             # may not be present:
             # - An older Setuptools without a local distutils is

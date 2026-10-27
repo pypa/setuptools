@@ -25,14 +25,14 @@ import importlib
 import os
 import pathlib
 import sys
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from configparser import ConfigParser
 from glob import iglob
 from importlib.machinery import ModuleSpec, all_suffixes
 from itertools import chain
 from pathlib import Path
 from types import ModuleType, TracebackType
-from typing import TYPE_CHECKING, Any, Callable, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from .. import _static
 from .._path import StrPath, same_path as _same_path
@@ -185,7 +185,7 @@ def read_attr(
         value = getattr(StaticModule(module_name, spec), attr_name)
         # XXX: Is marking as static contents coming from modules too optimistic?
         return _static.attempt_conversion(value)
-    except Exception:
+    except Exception:  # noqa: BLE001 # intentional broad fallback
         # fallback to evaluate module
         module = _load_spec(spec, module_name)
         return getattr(module, attr_name)

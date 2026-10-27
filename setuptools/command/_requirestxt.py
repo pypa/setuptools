@@ -77,11 +77,11 @@ def _move_install_requirements_markers(
     for r in complex_reqs:
         extras_require[':' + str(r.marker)].setdefault(r)
 
-    expanded_extras = dict(
+    expanded_extras = {
         # list(dict.fromkeys(...))  ensures a list of unique strings
-        (k, list(dict.fromkeys(str(r) for r in map(_clean_req, v))))
+        k: list(dict.fromkeys(str(r) for r in map(_clean_req, v)))
         for k, v in extras_require.items()
-    )
+    }
 
     return simple_install_requires, expanded_extras
 

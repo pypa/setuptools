@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING, Literal, overload
 from jaraco.functools import pass_none
 
 from .ccompiler import CCompiler
-from .compat import py39
 from .errors import DistutilsPlatformError
 from .util import is_mingw
 
@@ -275,108 +274,13 @@ def get_python_lib(
 
 
 @functools.lru_cache
-def _customize_macos():
-    """
-    Perform first-time customization of compiler-related
-    config vars on macOS. Use after a compiler is known
-    to be needed. This customization exists primarily to support Pythons
-    from binary installers. The kind and paths to build tools on
-    the user system may vary significantly from the system
-    that Python itself was built on.  Also the user OS
-    version and build tools may not support the same set
-    of CPU architectures for universal builds.
-    """
-
-    sys.platform == "darwin" and __import__('_osx_support').customize_compiler(
-        get_config_vars()
-    )
-
-
 def customize_compiler(compiler: CCompiler) -> None:
     """Do any platform-specific customization of a CCompiler instance.
 
-    Mainly needed on Unix, so we can plug in the information that
-    varies across Unices and is stored in Python's Makefile.
+    Retained for backward compatibility; the behavior now lives on the
+    compiler itself, so this simply delegates to ``configure_system``.
     """
-    if compiler.compiler_type in ["unix", "cygwin"] or (
-        compiler.compiler_type == "mingw32" and is_mingw()
-    ):
-        _customize_macos()
-
-        (
-            cc,
-            cxx,
-            cflags,
-            ccshared,
-            ldshared,
-            ldcxxshared,
-            shlib_suffix,
-            ar,
-            ar_flags,
-        ) = get_config_vars(
-            'CC',
-            'CXX',
-            'CFLAGS',
-            'CCSHARED',
-            'LDSHARED',
-            'LDCXXSHARED',
-            'SHLIB_SUFFIX',
-            'AR',
-            'ARFLAGS',
-        )
-
-        cxxflags = cflags
-
-        if 'CC' in os.environ:
-            newcc = os.environ['CC']
-            if 'LDSHARED' not in os.environ and ldshared.startswith(cc):
-                # If CC is overridden, use that as the default
-                #       command for LDSHARED as well
-                ldshared = newcc + ldshared[len(cc) :]
-            cc = newcc
-        cxx = os.environ.get('CXX', cxx)
-        ldshared = os.environ.get('LDSHARED', ldshared)
-        ldcxxshared = os.environ.get('LDCXXSHARED', ldcxxshared)
-        cpp = os.environ.get(
-            'CPP',
-            cc + " -E",  # not always
-        )
-
-        ldshared = _add_flags(ldshared, 'LD')
-        ldcxxshared = _add_flags(ldcxxshared, 'LD')
-        cflags = os.environ.get('CFLAGS', cflags)
-        ldshared = _add_flags(ldshared, 'C')
-        cxxflags = os.environ.get('CXXFLAGS', cxxflags)
-        ldcxxshared = _add_flags(ldcxxshared, 'CXX')
-        cpp = _add_flags(cpp, 'CPP')
-        cflags = _add_flags(cflags, 'CPP')
-        cxxflags = _add_flags(cxxflags, 'CPP')
-        ldshared = _add_flags(ldshared, 'CPP')
-        ldcxxshared = _add_flags(ldcxxshared, 'CPP')
-
-        ar = os.environ.get('AR', ar)
-
-        archiver = ar + ' ' + os.environ.get('ARFLAGS', ar_flags)
-        cc_cmd = cc + ' ' + cflags
-        cxx_cmd = cxx + ' ' + cxxflags
-
-        compiler.set_executables(
-            preprocessor=cpp,
-            compiler=cc_cmd,
-            compiler_so=cc_cmd + ' ' + ccshared,
-            compiler_cxx=cxx_cmd,
-            compiler_so_cxx=cxx_cmd + ' ' + ccshared,
-            linker_so=ldshared,
-            linker_so_cxx=ldcxxshared,
-            linker_exe=cc,
-            linker_exe_cxx=cxx,
-            archiver=archiver,
-        )
-
-        if 'RANLIB' in os.environ and compiler.executables.get('ranlib', None):
-            compiler.set_executables(ranlib=os.environ['RANLIB'])
-
-        compiler.shared_lib_extension = shlib_suffix
+    compiler.configure_system()
 
 
 def get_config_h_filename() -> str:
@@ -549,8 +453,8 @@ _config_vars = None
 @overload
 def get_config_vars() -> dict[str, str | int]: ...
 @overload
-def get_config_vars(arg: str, /, *args: str) -> list[str | int]: ...
-def get_config_vars(*args: str) -> list[str | int] | dict[str, str | int]:
+def get_config_vars(arg: str, /, *args: str) -> list[str | int | None]: ...
+def get_config_vars(*args: str) -> list[str | int | None] | dict[str, str | int]:
     """With no arguments, return a dictionary of all configuration
     variables relevant for the current platform.  Generally this includes
     everything needed to build extensions and install both pure modules and
@@ -563,7 +467,6 @@ def get_config_vars(*args: str) -> list[str | int] | dict[str, str | int]:
     global _config_vars
     if _config_vars is None:
         _config_vars = sysconfig.get_config_vars().copy()
-        py39.add_ext_suffix(_config_vars)
 
     return [_config_vars.get(name) for name in args] if args else _config_vars
 
@@ -585,14 +488,3 @@ def get_config_var(name: str) -> int | str | None:
 
         warnings.warn('SO is deprecated, use EXT_SUFFIX', DeprecationWarning, 2)
     return get_config_vars().get(name)
-
-
-@pass_none
-def _add_flags(value: str, type: str) -> str:
-    """
-    Add any flags from the environment for the given type.
-
-    type is the prefix to FLAGS in the environment key (e.g. "C" for "CFLAGS").
-    """
-    flags = os.environ.get(f'{type}FLAGS')
-    return f'{value} {flags}' if flags else value

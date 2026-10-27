@@ -1,6 +1,7 @@
 """install_scripts tests"""
 
 import sys
+from typing import ClassVar
 
 import pytest
 
@@ -11,7 +12,7 @@ from . import contexts
 
 
 class TestInstallScripts:
-    settings = dict(
+    settings: ClassVar[dict] = dict(
         name='foo',
         entry_points={'console_scripts': ['foo=foo:foo']},
         version='0.0',

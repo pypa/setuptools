@@ -137,7 +137,8 @@ def safer_name(value: str) -> str:
     # See bdist_wheel.safer_name
     return (
         # Per https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization
-        re.sub(r"[-_.]+", "-", safe_name(value))
+        re
+        .sub(r"[-_.]+", "-", safe_name(value))
         .lower()
         # Per https://packaging.python.org/en/latest/specifications/binary-distribution-format/#escaping-and-unicode
         .replace("-", "_")

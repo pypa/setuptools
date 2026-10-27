@@ -1,12 +1,16 @@
-import sys
+from __future__ import annotations
 
-try:
-    import grp
-    import pwd
-except ImportError:
-    grp = pwd = None
+import contextlib
+import sys
+from types import ModuleType
 
 import pytest
+
+grp: ModuleType | None = None
+pwd: ModuleType | None = None
+with contextlib.suppress(ImportError):
+    import grp
+    import pwd
 
 UNIX_ID_SUPPORT = grp and pwd
 UID_0_SUPPORT = UNIX_ID_SUPPORT and sys.platform != "cygwin"

@@ -6,7 +6,6 @@ import os
 import sys
 import textwrap
 from collections.abc import Iterator
-from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -37,7 +36,7 @@ else:
 get_config_var("LDSHARED")
 # Not publicly exposed in typeshed distutils stubs, but this is done on purpose
 # See https://github.com/pypa/setuptools/pull/4228#issuecomment-1959856400
-from distutils.sysconfig import _config_vars as _CONFIG_VARS  # noqa: E402
+from distutils.sysconfig import _config_vars as _CONFIG_VARS
 
 
 def _customize_compiler_for_shlib(compiler):
@@ -78,12 +77,24 @@ elif os.name != 'nt':
 
 def get_abi3_suffix():
     """Return the file extension for an abi3-compliant Extension()"""
-    for suffix in EXTENSION_SUFFIXES:
-        if '.abi3' in suffix:  # Unix
-            return suffix
-        elif suffix == '.pyd':  # Windows
-            return suffix
-    return None
+    suffix = get_config_var('EXT_SUFFIX')
+    if not isinstance(suffix, str) or get_config_var('HAVE_DYNAMIC_LOADING') == 0:
+        return None
+    if suffix.endswith('.pyd') and not suffix.startswith('_d'):
+        return '.pyd'
+    if not suffix.startswith('.cpython-'):
+        return None
+    if get_config_var('DYNLOADFILE') == 'dynload_hpux.o':
+        return None
+
+    # The 3.13t and 3.14t loaders cannot import .abi3t files.
+    if suffix.startswith(('.cpython-313t', '.cpython-314t')):
+        return None
+
+    abi = '.abi3t' if get_config_var('Py_GIL_DISABLED') else '.abi3'
+    platform = get_config_var('SOABI_PLATFORM')
+    _, ext = os.path.splitext(suffix)
+    return f'{abi}-{platform}{ext}' if platform else f'{abi}{ext}'
 
 
 class build_ext(_build_ext):
@@ -223,7 +234,7 @@ class build_ext(_build_ext):
 
     def setup_shlib_compiler(self) -> None:
         compiler = self.shlib_compiler = new_compiler(
-            compiler=self.compiler, dry_run=self.dry_run, force=self.force
+            compiler=self.compiler, force=self.force
         )
         _customize_compiler_for_shlib(compiler)
 
@@ -335,7 +346,7 @@ class build_ext(_build_ext):
         )
         # pair each base with the extension
         pairs = itertools.product(ns_ext_bases, self.__get_output_extensions())
-        return list(base + fnext for base, fnext in pairs)
+        return [base + fnext for base, fnext in pairs]
 
     def __get_output_extensions(self):
         yield '.py'
@@ -351,53 +362,52 @@ class build_ext(_build_ext):
         log.info("writing stub loader for %s to %s", ext._full_name, stub_file)
         if compile and os.path.exists(stub_file):
             raise BaseError(stub_file + " already exists! Please delete.")
-        if not self.dry_run:
-            with open(stub_file, 'w', encoding="utf-8") as f:
-                content = (
-                    textwrap.dedent(f"""
-                    def __bootstrap__():
-                       global __bootstrap__, __file__, __loader__
-                       import sys, os, importlib.resources as irs, importlib.util
-                    #rtld   import dl
-                       with irs.files(__name__).joinpath(
-                         {os.path.basename(ext._file_name)!r}) as __file__:
-                          del __bootstrap__
-                          if '__loader__' in globals():
-                              del __loader__
-                    #rtld      old_flags = sys.getdlopenflags()
-                          old_dir = os.getcwd()
-                          try:
-                            os.chdir(os.path.dirname(__file__))
-                    #rtld        sys.setdlopenflags(dl.RTLD_NOW)
-                            spec = importlib.util.spec_from_file_location(
-                                       __name__, __file__)
-                            mod = importlib.util.module_from_spec(spec)
-                            spec.loader.exec_module(mod)
-                          finally:
-                    #rtld        sys.setdlopenflags(old_flags)
-                            os.chdir(old_dir)
-                    __bootstrap__()
-                    """)
-                    .lstrip()
-                    .replace('#rtld', '#rtld' * (not have_rtld))
-                )
-                f.write(content)
+        with open(stub_file, 'w', encoding="utf-8") as f:
+            content = (
+                textwrap
+                .dedent(f"""
+                def __bootstrap__():
+                   global __bootstrap__, __file__, __loader__
+                   import sys, os, importlib.resources as irs, importlib.util
+                #rtld   import dl
+                   with irs.files(__name__).joinpath(
+                     {os.path.basename(ext._file_name)!r}) as __file__:
+                      del __bootstrap__
+                      if '__loader__' in globals():
+                          del __loader__
+                #rtld      old_flags = sys.getdlopenflags()
+                      old_dir = os.getcwd()
+                      try:
+                        os.chdir(os.path.dirname(__file__))
+                #rtld        sys.setdlopenflags(dl.RTLD_NOW)
+                        spec = importlib.util.spec_from_file_location(
+                                   __name__, __file__)
+                        mod = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(mod)
+                      finally:
+                #rtld        sys.setdlopenflags(old_flags)
+                        os.chdir(old_dir)
+                __bootstrap__()
+                """)
+                .lstrip()
+                .replace('#rtld', '#rtld' * (not have_rtld))
+            )
+            f.write(content)
         if compile:
             self._compile_and_remove_stub(stub_file)
 
     def _compile_and_remove_stub(self, stub_file: str):
         from distutils.util import byte_compile
 
-        byte_compile([stub_file], optimize=0, force=True, dry_run=self.dry_run)
+        byte_compile([stub_file], optimize=0, force=True)
         optimize = self.get_finalized_command('install_lib').optimize
         if optimize > 0:
             byte_compile(
                 [stub_file],
                 optimize=optimize,
                 force=True,
-                dry_run=self.dry_run,
             )
-        if os.path.exists(stub_file) and not self.dry_run:
+        if os.path.exists(stub_file):
             os.unlink(stub_file)
 
 

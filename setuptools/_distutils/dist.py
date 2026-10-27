@@ -13,7 +13,7 @@ import pathlib
 import re
 import sys
 import warnings
-from collections.abc import Iterable, MutableMapping
+from collections.abc import Iterable, Mapping, MutableMapping
 from email import message_from_file
 from typing import (
     IO,
@@ -22,10 +22,11 @@ from typing import (
     ClassVar,
     Literal,
     TypeVar,
-    Union,
+    cast,
     overload,
 )
 
+from jaraco.text import SeparatedValues
 from packaging.utils import canonicalize_name, canonicalize_version
 
 from ._log import log
@@ -40,15 +41,17 @@ from .fancy_getopt import FancyGetopt, translate_longopt
 from .util import check_environ, rfc822_escape, strtobool
 
 if TYPE_CHECKING:
+    from typing import TypeAlias
+
     from _typeshed import SupportsWrite
-    from typing_extensions import TypeAlias
 
     # type-only import because of mutual dependence between these modules
     from .cmd import Command
+    from .extension import Extension
 
 _CommandT = TypeVar("_CommandT", bound="Command")
 _OptionsList: TypeAlias = list[
-    Union[tuple[str, Union[str, None], str, int], tuple[str, Union[str, None], str]]
+    tuple[str, str | None, str, int] | tuple[str, str | None, str]
 ]
 
 
@@ -72,6 +75,34 @@ def _ensure_list(value: str | Iterable[str], fieldname) -> str | list[str]:
         log.warning(msg)
         value = list(value)
     return value
+
+
+def _repair_newlines(value: str) -> str:
+    """
+    Repair a ``keywords`` or ``platforms`` value that improperly uses
+    newlines to separate items.
+
+    These fields separate items with commas (and, in the old specification,
+    PEP 345, with spaces). Newlines were never a valid separator and corrupt
+    the generated ``PKG-INFO``/``METADATA`` (pypa/setuptools#4887). As a
+    forgiving measure, values that supply these fields as newline-separated
+    strings (e.g. a triple-quoted string with one item per line) have each
+    line treated as a separate item by replacing newlines with commas, but
+    the behavior is deprecated. Empty items produced by consecutive or
+    trailing separators are dropped by the caller.
+    """
+    if "\n" not in value:
+        return value
+    # A plain warning (UserWarning) rather than DeprecationWarning so that
+    # it's shown by default; DeprecationWarning is suppressed outside of test
+    # runners and this needs to reach setuptools users (cf. distutils.log.Log).
+    warnings.warn(
+        "Newlines are not a valid separator for the 'keywords' and "
+        "'platforms' fields and their use is deprecated. Separate items "
+        "with commas instead. This will raise an error in the future.",
+        stacklevel=2,
+    )
+    return value.replace("\n", ",")
 
 
 class Distribution:
@@ -99,7 +130,6 @@ class Distribution:
     global_options: ClassVar[_OptionsList] = [
         ('verbose', 'v', "run verbosely (default)", 1),
         ('quiet', 'q', "run quietly (turns verbosity off)"),
-        ('dry-run', 'n', "don't actually do anything"),
         ('help', 'h', "show detailed help message"),
         ('no-user-cfg', None, 'ignore pydistutils.cfg in your home directory'),
     ]
@@ -164,7 +194,6 @@ Common commands: (see '--help-commands' for more)
 
         # Default values for our command-line options
         self.verbose = True
-        self.dry_run = False
         self.help = False
         for attr in self.display_option_names:
             setattr(self, attr, False)
@@ -220,19 +249,19 @@ Common commands: (see '--help-commands' for more)
         # These options are really the business of various commands, rather
         # than of the Distribution itself.  We provide aliases for them in
         # Distribution as a convenience to the developer.
-        self.packages = None
+        self.packages: list[str] | None = None
         self.package_data: dict[str, list[str]] = {}
-        self.package_dir = None
-        self.py_modules = None
-        self.libraries = None
-        self.headers = None
-        self.ext_modules = None
-        self.ext_package = None
-        self.include_dirs = None
+        self.package_dir: Mapping[str, str] | None = None
+        self.py_modules: list[str] | None = None
+        self.libraries: list[tuple[str, dict[str, Any]]] | None = None
+        self.headers: list[str] | None = None
+        self.ext_modules: list[Extension] | None = None
+        self.ext_package: str | None = None
+        self.include_dirs: list[str] | None = None
         self.extra_path = None
-        self.scripts = None
-        self.data_files = None
-        self.password = ''
+        self.scripts: list[str] | None = None
+        self.data_files: list[tuple[str, list[str]]] | None = None
+        self.password: str = ''
 
         # And now initialize bookkeeping stuff that can't be supplied by
         # the caller at all.  'command_obj' maps command names to
@@ -261,7 +290,7 @@ Common commands: (see '--help-commands' for more)
             # specifically.  Note that this order guarantees that aliased
             # command options will override any supplied redundantly
             # through the general options dictionary.
-            options = attrs.get('options')
+            options: Mapping[str, Mapping[str, str]] | None = attrs.get('options')
             if options is not None:
                 del attrs['options']
                 for command, cmd_options in options.items():
@@ -446,7 +475,7 @@ Common commands: (see '--help-commands' for more)
                 try:
                     if alias:
                         setattr(self, alias, not strtobool(val))
-                    elif opt in ('verbose', 'dry_run'):  # ugh!
+                    elif opt == 'verbose':
                         setattr(self, opt, strtobool(val))
                     else:
                         setattr(self, opt, val)
@@ -493,7 +522,7 @@ Common commands: (see '--help-commands' for more)
         parser.set_aliases({'licence': 'license'})
         args = parser.getopt(args=self.script_args, object=self)
         option_order = parser.get_option_order()
-        logging.getLogger().setLevel(logging.WARN - 10 * self.verbose)
+        logging.getLogger().setLevel(logging.WARNING - 10 * self.verbose)
 
         # for display options we return immediately
         if self.handle_display_options(option_order):
@@ -575,11 +604,10 @@ Common commands: (see '--help-commands' for more)
             hasattr(cmd_class, 'user_options')
             and isinstance(cmd_class.user_options, list)
         ):
-            msg = (
-                "command class %s must provide "
+            raise DistutilsClassError(
+                f"command class {cmd_class} must provide "
                 "'user_options' attribute (a list of tuples)"
             )
-            raise DistutilsClassError(msg % cmd_class)
 
         # If the command class has a list of negative alias options,
         # merge it in with the global negative aliases.
@@ -644,7 +672,8 @@ Common commands: (see '--help-commands' for more)
             if value is None:
                 continue
             if isinstance(value, str):
-                value = [elm.strip() for elm in value.split(',')]
+                # SeparatedValues strips whitespace and discards empty items.
+                value = list(SeparatedValues(_repair_newlines(value)))
                 setattr(self.metadata, attr, value)
 
     def _show_help(
@@ -767,12 +796,11 @@ Common commands: (see '--help-commands' for more)
         std_commands = distutils.command.__all__
         is_std = set(std_commands)
 
-        extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
+        extra_commands = [cmd for cmd in self.cmdclass if cmd not in is_std]
 
         max_length = 0
         for cmd in std_commands + extra_commands:
-            if len(cmd) > max_length:
-                max_length = len(cmd)
+            max_length = max(max_length, len(cmd))
 
         self.print_command_list(std_commands, "Standard commands", max_length)
         if extra_commands:
@@ -793,7 +821,7 @@ Common commands: (see '--help-commands' for more)
         std_commands = distutils.command.__all__
         is_std = set(std_commands)
 
-        extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
+        extra_commands = [cmd for cmd in self.cmdclass if cmd not in is_std]
 
         rv = []
         for cmd in std_commands + extra_commands:
@@ -848,7 +876,7 @@ Common commands: (see '--help-commands' for more)
                 continue
 
             try:
-                klass = getattr(module, klass_name)
+                klass = cast("type[Command]", getattr(module, klass_name))
             except AttributeError:
                 raise DistutilsModuleError(
                     f"invalid command '{command}' (no class '{klass_name}' in module '{module_name}')"
@@ -864,9 +892,7 @@ Common commands: (see '--help-commands' for more)
         self, command: str, create: Literal[True] = True
     ) -> Command: ...
     @overload
-    def get_command_obj(
-        self, command: str, create: Literal[False]
-    ) -> Command | None: ...
+    def get_command_obj(self, command: str, create: bool) -> Command | None: ...
     def get_command_obj(self, command: str, create: bool = True) -> Command | None:
         """Return the command object for 'command'.  Normally this object
         is cached on a previous call to 'get_command_obj()'; if no command
@@ -1024,25 +1050,25 @@ Common commands: (see '--help-commands' for more)
     # -- Distribution query methods ------------------------------------
 
     def has_pure_modules(self) -> bool:
-        return len(self.packages or self.py_modules or []) > 0
+        return bool(self.packages or self.py_modules)
 
     def has_ext_modules(self) -> bool:
-        return self.ext_modules and len(self.ext_modules) > 0
+        return bool(self.ext_modules)
 
     def has_c_libraries(self) -> bool:
-        return self.libraries and len(self.libraries) > 0
+        return bool(self.libraries)
 
     def has_modules(self) -> bool:
         return self.has_pure_modules() or self.has_ext_modules()
 
     def has_headers(self) -> bool:
-        return self.headers and len(self.headers) > 0
+        return bool(self.headers)
 
     def has_scripts(self) -> bool:
-        return self.scripts and len(self.scripts) > 0
+        return bool(self.scripts)
 
     def has_data_files(self) -> bool:
-        return self.data_files and len(self.data_files) > 0
+        return bool(self.data_files)
 
     def is_pure(self) -> bool:
         return (
@@ -1139,7 +1165,8 @@ class DistributionMetadata:
         self, path: str | bytes | os.PathLike[str] | os.PathLike[bytes] | None = None
     ) -> None:
         if path is not None:
-            self.read_pkg_file(open(path))
+            with open(path) as f:
+                self.read_pkg_file(f)
         else:
             self.name: str | None = None
             self.version: str | None = None
@@ -1197,7 +1224,7 @@ class DistributionMetadata:
         self.description = _read_field('summary')
 
         if 'keywords' in msg:
-            self.keywords = _read_field('keywords').split(',')
+            self.keywords = _read_field('keywords').split(',')  # type:ignore[union-attr] # Manually checked
 
         self.platforms = _read_list('platform')
         self.classifiers = _read_list('classifier')

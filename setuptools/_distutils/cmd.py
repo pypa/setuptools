@@ -12,7 +12,7 @@ import re
 import sys
 from abc import abstractmethod
 from collections.abc import Callable, MutableSequence
-from typing import TYPE_CHECKING, Any, ClassVar, TypeVar, overload
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar, cast, overload
 
 from . import _modified, archive_util, dir_util, file_util, util
 from ._log import log
@@ -91,13 +91,8 @@ class Command:
 
         # Per-command versions of the global flags, so that the user can
         # customize Distutils' behaviour command-by-command and let some
-        # commands fall back on the Distribution's behaviour.  None means
-        # "not defined, check self.distribution's copy", while 0 or 1 mean
-        # false and true (duh).  Note that this means figuring out the real
-        # value of each flag is a touch complicated -- hence "self._dry_run"
-        # will be handled by __getattr__, below.
-        # XXX This needs to be fixed.
-        self._dry_run = None
+        # commands fall back on the Distribution's behaviour. None means
+        # "not defined, check self.distribution's copy".
 
         # verbose is largely ignored, but needs to be set for
         # backwards compatibility (I think)?
@@ -107,7 +102,7 @@ class Command:
         # timestamps, but methods defined *here* assume that
         # 'self.force' exists for all commands.  So define it here
         # just to be safe.
-        self.force = None
+        self.force: bool | None = None
 
         # The 'help' flag is just used for command-line parsing, so
         # none of that complicated bureaucracy is needed.
@@ -118,17 +113,6 @@ class Command:
         # this flag: it is the business of 'ensure_finalized()', which
         # always calls 'finalize_options()', to respect/update it.
         self.finalized = False
-
-    # XXX A more explicit way to customize dry_run would be better.
-    def __getattr__(self, attr):
-        if attr == 'dry_run':
-            myval = getattr(self, "_" + attr)
-            if myval is None:
-                return getattr(self.distribution, attr)
-            else:
-                return myval
-        else:
-            raise AttributeError(attr)
 
     def ensure_finalized(self) -> None:
         if not self.finalized:
@@ -330,7 +314,8 @@ class Command:
         'command', call its 'ensure_finalized()' method, and return the
         finalized command object.
         """
-        cmd_obj = self.distribution.get_command_obj(command, create)
+        # TODO: Raise a more descriptive error when create=False or cmd_obj is None ?
+        cmd_obj = cast(Command, self.distribution.get_command_obj(command, create))
         cmd_obj.ensure_finalized()
         return cmd_obj
 
@@ -381,10 +366,10 @@ class Command:
         msg: object = None,
         level: int = 1,
     ) -> None:
-        util.execute(func, args, msg, dry_run=self.dry_run)
+        util.execute(func, args, msg)
 
     def mkpath(self, name: str, mode: int = 0o777) -> None:
-        dir_util.mkpath(name, mode, dry_run=self.dry_run)
+        dir_util.mkpath(name, mode)
 
     @overload
     def copy_file(
@@ -425,7 +410,6 @@ class Command:
             preserve_times,
             not self.force,
             link,
-            dry_run=self.dry_run,
         )
 
     def copy_tree(
@@ -447,7 +431,6 @@ class Command:
             preserve_times,
             preserve_symlinks,
             not self.force,
-            dry_run=self.dry_run,
         )
 
     @overload
@@ -465,7 +448,7 @@ class Command:
         level: int = 1,
     ) -> str | os.PathLike[str] | bytes | os.PathLike[bytes]:
         """Move a file respecting dry-run flag."""
-        return file_util.move_file(src, dst, dry_run=self.dry_run)
+        return file_util.move_file(src, dst)
 
     def spawn(
         self, cmd: MutableSequence[str], search_path: bool = True, level: int = 1
@@ -473,7 +456,7 @@ class Command:
         """Spawn an external command respecting dry-run flag."""
         from distutils.spawn import spawn
 
-        spawn(cmd, search_path, dry_run=self.dry_run)
+        spawn(cmd)
 
     @overload
     def make_archive(
@@ -504,12 +487,11 @@ class Command:
         owner: str | None = None,
         group: str | None = None,
     ) -> str:
-        return archive_util.make_archive(
+        return archive_util.make_archive(  # type: ignore[misc] # Mypy bailed out
             base_name,
             format,
             root_dir,
             base_dir,
-            dry_run=self.dry_run,
             owner=owner,
             group=group,
         )
@@ -533,7 +515,7 @@ class Command:
         timestamp checks.
         """
         if skip_msg is None:
-            skip_msg = f"skipping {outfile} (inputs unchanged)"
+            skip_msg = f"skipping {outfile!r} (inputs unchanged)"
 
         # Allow 'infiles' to be a single string
         if isinstance(infiles, str):
@@ -542,7 +524,7 @@ class Command:
             raise TypeError("'infiles' must be a string, or a list or tuple of strings")
 
         if exec_msg is None:
-            exec_msg = "generating {} from {}".format(outfile, ', '.join(infiles))
+            exec_msg = f"generating {outfile!r} from {', '.join(infiles)!r}"
 
         # If 'outfile' must be regenerated (either because it doesn't
         # exist, is out-of-date, or the 'force' flag is true) then

@@ -13,10 +13,10 @@ import textwrap
 import time
 from distutils import sysconfig
 from distutils.command.build_ext import build_ext
+from distutils.compilers.errors import PlatformError
 from distutils.core import Distribution
 from distutils.errors import (
     CompileError,
-    DistutilsPlatformError,
     DistutilsSetupError,
     UnknownFileError,
 )
@@ -29,8 +29,7 @@ import jaraco.path
 import path
 import pytest
 from test import support
-
-from .compat import py39 as import_helper
+from test.support import import_helper
 
 
 @pytest.fixture()
@@ -60,10 +59,12 @@ def user_site_dir(request):
 
 @contextlib.contextmanager
 def safe_extension_import(name, path):
-    with import_helper.CleanImport(name):
-        with extension_redirect(name, path) as new_path:
-            with import_helper.DirsOnSysPath(new_path):
-                yield
+    with (
+        import_helper.CleanImport(name),
+        extension_redirect(name, path) as new_path,
+        import_helper.DirsOnSysPath(new_path),
+    ):
+        yield
 
 
 @contextlib.contextmanager
@@ -397,8 +398,12 @@ class TestBuildExt(TempdirManager):
         cmd.ensure_finalized()
         assert re.search(r'foo(_d)?\..*', cmd.get_ext_filename(modules[0].name))
         assert re.search(r'föö(_d)?\..*', cmd.get_ext_filename(modules[1].name))
-        assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
-        assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
+        if sys.version_info < (3, 15):
+            assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
+            assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
+        else:
+            assert cmd.get_export_symbols(modules[0]) == []
+            assert cmd.get_export_symbols(modules[1]) == []
 
     def test_export_symbols__init__(self):
         # https://github.com/python/cpython/issues/80074
@@ -410,8 +415,27 @@ class TestBuildExt(TempdirManager):
         dist = Distribution({'name': 'xx', 'ext_modules': modules})
         cmd = self.build_ext(dist)
         cmd.ensure_finalized()
-        assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
-        assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
+        if sys.version_info < (3, 15):
+            assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
+            assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
+        else:
+            assert cmd.get_export_symbols(modules[0]) == []
+            assert cmd.get_export_symbols(modules[1]) == []
+
+    def test_get_export_symbols_idempotent(self):
+        """
+        Repeated calls to get_export_symbols should not accumulate
+        duplicate implied symbols.
+
+        This test can be removed once implied_symbols is removed (that is,
+        once support for Python 3.14 and earlier is dropped).
+        """
+        ext = Extension('foo', ['aaa'])
+        dist = Distribution({'name': 'xx', 'ext_modules': [ext]})
+        cmd = self.build_ext(dist)
+        cmd.ensure_finalized()
+        expected = list(cmd.get_export_symbols(ext))
+        assert cmd.get_export_symbols(ext) == expected
 
     def test_compiler_option(self):
         # cmd.compiler is an option and
@@ -537,7 +561,7 @@ class TestBuildExt(TempdirManager):
     def test_deployment_target_too_low(self):
         # Issue 9516: Test that an extension module is not allowed to be
         # compiled with a deployment target less than that of the interpreter.
-        with pytest.raises(DistutilsPlatformError):
+        with pytest.raises(PlatformError):
             self._try_compile_deployment_target('>', '10.1')
 
     @pytest.mark.skipif('platform.system() != "Darwin"')

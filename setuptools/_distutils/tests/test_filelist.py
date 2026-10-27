@@ -3,14 +3,14 @@
 import logging
 import os
 import re
+import sys
 from distutils import debug, filelist
 from distutils.errors import DistutilsTemplateError
 from distutils.filelist import FileList, glob_to_re, translate_pattern
 
 import jaraco.path
 import pytest
-
-from .compat import py39 as os_helper
+from test.support import os_helper
 
 MANIFEST_IN = """\
 include ok
@@ -45,22 +45,22 @@ class TestFileList:
         caplog.clear()
 
     def test_glob_to_re(self):
-        sep = os.sep
-        if os.sep == '\\':
-            sep = re.escape(os.sep)
+        sep = re.escape(os.sep)
+        # https://docs.python.org/3/whatsnew/3.14.html#re
+        end_of_str_metachar = r"\z" if sys.version_info >= (3, 14) else r"\Z"
 
         for glob, regex in (
             # simple cases
-            ('foo*', r'(?s:foo[^%(sep)s]*)\Z'),
-            ('foo?', r'(?s:foo[^%(sep)s])\Z'),
-            ('foo??', r'(?s:foo[^%(sep)s][^%(sep)s])\Z'),
+            ('foo*', r'(?s:foo[^%(sep)s]*)%(eos)s'),
+            ('foo?', r'(?s:foo[^%(sep)s])%(eos)s'),
+            ('foo??', r'(?s:foo[^%(sep)s][^%(sep)s])%(eos)s'),
             # special cases
-            (r'foo\\*', r'(?s:foo\\\\[^%(sep)s]*)\Z'),
-            (r'foo\\\*', r'(?s:foo\\\\\\[^%(sep)s]*)\Z'),
-            ('foo????', r'(?s:foo[^%(sep)s][^%(sep)s][^%(sep)s][^%(sep)s])\Z'),
-            (r'foo\\??', r'(?s:foo\\\\[^%(sep)s][^%(sep)s])\Z'),
+            (r'foo\\*', r'(?s:foo\\\\[^%(sep)s]*)%(eos)s'),
+            (r'foo\\\*', r'(?s:foo\\\\\\[^%(sep)s]*)%(eos)s'),
+            ('foo????', r'(?s:foo[^%(sep)s][^%(sep)s][^%(sep)s][^%(sep)s])%(eos)s'),
+            (r'foo\\??', r'(?s:foo\\\\[^%(sep)s][^%(sep)s])%(eos)s'),
         ):
-            regex = regex % {'sep': sep}
+            regex = regex % {'sep': sep, 'eos': end_of_str_metachar}
             assert glob_to_re(glob) == regex
 
     def test_process_template_line(self):

@@ -24,13 +24,15 @@ from ..sysconfig import get_python_version
 class bdist_rpm(Command):
     description = "create an RPM distribution"
 
-    user_options = [
+    user_options: ClassVar = [
         ('bdist-base=', None, "base directory for creating built distributions"),
         (
             'rpm-base=',
             None,
-            "base directory for creating RPMs (defaults to \"rpm\" under "
-            "--bdist-base; must be specified for RPM 2)",
+            (
+                "base directory for creating RPMs (defaults to \"rpm\" under "
+                "--bdist-base; must be specified for RPM 2)"
+            ),
         ),
         (
             'dist-dir=',
@@ -40,14 +42,18 @@ class bdist_rpm(Command):
         (
             'python=',
             None,
-            "path to Python interpreter to hard-code in the .spec file "
-            "[default: \"python\"]",
+            (
+                "path to Python interpreter to hard-code in the .spec file "
+                "[default: \"python\"]"
+            ),
         ),
         (
             'fix-python',
             None,
-            "hard-code the exact path to the current Python interpreter in "
-            "the .spec file",
+            (
+                "hard-code the exact path to the current Python interpreter in "
+                "the .spec file"
+            ),
         ),
         ('spec-only', None, "only regenerate spec file"),
         ('source-only', None, "only generate source RPM"),
@@ -61,8 +67,10 @@ class bdist_rpm(Command):
         (
             'distribution-name=',
             None,
-            "name of the (Linux) distribution to which this "
-            "RPM applies (*not* the name of the module distribution!)",
+            (
+                "name of the (Linux) distribution to which this "
+                "RPM applies (*not* the name of the module distribution!)"
+            ),
         ),
         ('group=', None, "package classification [default: \"Development/Libraries\"]"),
         ('release=', None, "RPM release number"),
@@ -70,8 +78,10 @@ class bdist_rpm(Command):
         (
             'vendor=',
             None,
-            "RPM \"vendor\" (eg. \"Joe Blow <joe@example.com>\") "
-            "[default: maintainer or author from setup script]",
+            (
+                "RPM \"vendor\" (eg. \"Joe Blow <joe@example.com>\") "
+                "[default: maintainer or author from setup script]"
+            ),
         ),
         (
             'packager=',
@@ -137,7 +147,7 @@ class bdist_rpm(Command):
         ('quiet', 'q', "Run the INSTALL phase of RPM building in quiet mode"),
     ]
 
-    boolean_options: ClassVar[list[str]] = [
+    boolean_options: ClassVar = [
         'keep-temp',
         'use-rpm-opt-flags',
         'rpm3-mode',
@@ -145,7 +155,7 @@ class bdist_rpm(Command):
         'quiet',
     ]
 
-    negative_opt: ClassVar[dict[str, str]] = {
+    negative_opt: ClassVar = {
         'no-keep-temp': 'keep-temp',
         'no-rpm-opt-flags': 'use-rpm-opt-flags',
         'rpm2-mode': 'rpm3-mode',
@@ -378,30 +388,29 @@ class bdist_rpm(Command):
 
         self.spawn(rpm_cmd)
 
-        if not self.dry_run:
-            if self.distribution.has_ext_modules():
-                pyversion = get_python_version()
-            else:
-                pyversion = 'any'
+        if self.distribution.has_ext_modules():
+            pyversion = get_python_version()
+        else:
+            pyversion = 'any'
 
-            if not self.binary_only:
-                srpm = os.path.join(rpm_dir['SRPMS'], source_rpm)
-                assert os.path.exists(srpm)
-                self.move_file(srpm, self.dist_dir)
-                filename = os.path.join(self.dist_dir, source_rpm)
-                self.distribution.dist_files.append(('bdist_rpm', pyversion, filename))
+        if not self.binary_only:
+            srpm = os.path.join(rpm_dir['SRPMS'], source_rpm)
+            assert os.path.exists(srpm)
+            self.move_file(srpm, self.dist_dir)
+            filename = os.path.join(self.dist_dir, source_rpm)
+            self.distribution.dist_files.append(('bdist_rpm', pyversion, filename))
 
-            if not self.source_only:
-                for rpm in binary_rpms:
-                    rpm = os.path.join(rpm_dir['RPMS'], rpm)
-                    if os.path.exists(rpm):
-                        self.move_file(rpm, self.dist_dir)
-                        filename = os.path.join(self.dist_dir, os.path.basename(rpm))
-                        self.distribution.dist_files.append((
-                            'bdist_rpm',
-                            pyversion,
-                            filename,
-                        ))
+        if not self.source_only:
+            for rpm in binary_rpms:
+                rpm = os.path.join(rpm_dir['RPMS'], rpm)
+                if os.path.exists(rpm):
+                    self.move_file(rpm, self.dist_dir)
+                    filename = os.path.join(self.dist_dir, os.path.basename(rpm))
+                    self.distribution.dist_files.append((
+                        'bdist_rpm',
+                        pyversion,
+                        filename,
+                    ))
 
     def _dist_path(self, path):
         return os.path.join(self.dist_dir, os.path.basename(path))

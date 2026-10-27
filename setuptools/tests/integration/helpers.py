@@ -18,6 +18,7 @@ from zipfile import ZipFile, ZipInfo
 def run(cmd, env=None):
     r = subprocess.run(
         cmd,
+        check=False,
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -41,7 +42,7 @@ class Archive:
     def __init__(self, filename) -> None:
         self._filename = filename
         if filename.endswith("tar.gz"):
-            self._obj: tarfile.TarFile | ZipFile = tarfile.open(filename, "r:gz")
+            self._obj: tarfile.TarFile | ZipFile = tarfile.open(filename, "r:gz")  # noqa: SIM115 # handle managed explicitly
         elif filename.endswith("zip"):
             self._obj = ZipFile(filename)
         else:

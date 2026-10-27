@@ -10,6 +10,7 @@ import os
 import shutil
 import sys
 import tempfile
+import unicodedata
 
 import pytest
 
@@ -157,6 +158,21 @@ def test_translated_pattern_mismatch(pattern_mismatch):
     assert not translate_pattern(pattern).match(target)
 
 
+def test_translate_pattern_unicode_normalization():
+    """
+    Matching is insensitive to Unicode normalization form: a pattern authored
+    in one form matches a path stored on disk in another (and vice versa), so
+    that an exclusion cannot be bypassed by an NFC/NFD mismatch.
+
+    Regression test for GHSA-h35f-9h28-mq5c.
+    """
+    nfc = unicodedata.normalize('NFC', 'café.txt')  # 'café.txt' composed
+    nfd = unicodedata.normalize('NFD', 'café.txt')  # 'café.txt' decomposed
+    assert nfc != nfd  # the two byte forms genuinely differ
+    assert translate_pattern(nfc).match(nfd)
+    assert translate_pattern(nfd).match(nfc)
+
+
 class TempDirTestCase:
     def setup_method(self, method):
         self.temp_dir = tempfile.mkdtemp()
@@ -172,7 +188,7 @@ class TestManifestTest(TempDirTestCase):
     def setup_method(self, method):
         super().setup_method(method)
 
-        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w', encoding="utf-8")
+        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w', encoding="utf-8")  # noqa: SIM115 # handle managed explicitly
         f.write(SETUP_PY)
         f.close()
         """
@@ -227,7 +243,7 @@ class TestManifestTest(TempDirTestCase):
 
     def test_no_manifest(self):
         """Check a missing MANIFEST.in includes only the standard files."""
-        assert (default_files - set(['MANIFEST.in'])) == self.get_files()
+        assert (default_files - {'MANIFEST.in'}) == self.get_files()
 
     def test_empty_files(self):
         """Check an empty MANIFEST.in includes only the standard files."""
@@ -237,7 +253,7 @@ class TestManifestTest(TempDirTestCase):
     def test_include(self):
         """Include extra rst files in the project root."""
         self.make_manifest("include *.rst")
-        files = default_files | set(['testing.rst', '.hidden.rst'])
+        files = default_files | {'testing.rst', '.hidden.rst'}
         assert files == self.get_files()
 
     def test_exclude(self):
@@ -249,45 +265,45 @@ class TestManifestTest(TempDirTestCase):
             exclude app/*.txt
             """
         )
-        files = default_files | set([ml('app/c.rst')])
+        files = default_files | {ml('app/c.rst')}
         assert files == self.get_files()
 
     def test_include_multiple(self):
         """Include with multiple patterns."""
         ml = make_local_path
         self.make_manifest("include app/*.txt app/static/*")
-        files = default_files | set([
+        files = default_files | {
             ml('app/a.txt'),
             ml('app/b.txt'),
             ml('app/static/app.js'),
             ml('app/static/app.js.map'),
             ml('app/static/app.css'),
             ml('app/static/app.css.map'),
-        ])
+        }
         assert files == self.get_files()
 
     def test_graft(self):
         """Include the whole app/static/ directory."""
         ml = make_local_path
         self.make_manifest("graft app/static")
-        files = default_files | set([
+        files = default_files | {
             ml('app/static/app.js'),
             ml('app/static/app.js.map'),
             ml('app/static/app.css'),
             ml('app/static/app.css.map'),
-        ])
+        }
         assert files == self.get_files()
 
     def test_graft_glob_syntax(self):
         """Include the whole app/static/ directory."""
         ml = make_local_path
         self.make_manifest("graft */static")
-        files = default_files | set([
+        files = default_files | {
             ml('app/static/app.js'),
             ml('app/static/app.js.map'),
             ml('app/static/app.css'),
             ml('app/static/app.css.map'),
-        ])
+        }
         assert files == self.get_files()
 
     def test_graft_global_exclude(self):
@@ -299,7 +315,7 @@ class TestManifestTest(TempDirTestCase):
             global-exclude *.map
             """
         )
-        files = default_files | set([ml('app/static/app.js'), ml('app/static/app.css')])
+        files = default_files | {ml('app/static/app.js'), ml('app/static/app.css')}
         assert files == self.get_files()
 
     def test_global_include(self):
@@ -310,13 +326,13 @@ class TestManifestTest(TempDirTestCase):
             global-include *.rst *.js *.css
             """
         )
-        files = default_files | set([
+        files = default_files | {
             '.hidden.rst',
             'testing.rst',
             ml('app/c.rst'),
             ml('app/static/app.js'),
             ml('app/static/app.css'),
-        ])
+        }
         assert files == self.get_files()
 
     def test_graft_prune(self):
@@ -328,8 +344,37 @@ class TestManifestTest(TempDirTestCase):
             prune app/static
             """
         )
-        files = default_files | set([ml('app/a.txt'), ml('app/b.txt'), ml('app/c.rst')])
+        files = default_files | {ml('app/a.txt'), ml('app/b.txt'), ml('app/c.rst')}
         assert files == self.get_files()
+
+    def test_global_exclude_unicode_normalization(self):
+        """
+        A ``global-exclude`` authored NFC must drop a file whose on-disk name
+        is NFD: on macOS APFS/HFS+ the two are the same file, and even on
+        case/normalization-exact filesystems the decomposed name can be
+        committed and reach the build. Otherwise the file is published in the
+        sdist despite the exclusion.
+
+        Regression test for GHSA-h35f-9h28-mq5c.
+        """
+        nfc_name = unicodedata.normalize('NFC', 'café.txt')
+        nfd_name = unicodedata.normalize('NFD', 'café.txt')
+        assert nfc_name != nfd_name
+        # write the file under its decomposed (NFD) name ...
+        touch(os.path.join(self.temp_dir, 'app', nfd_name))
+        # ... and exclude it with the composed (NFC) form.
+        self.make_manifest(
+            f"""
+            global-include *.txt
+            global-exclude {nfc_name}
+            """
+        )
+        leaked = {
+            f
+            for f in self.get_files()
+            if unicodedata.normalize('NFC', os.path.basename(f)) == nfc_name
+        }
+        assert not leaked, f"excluded file leaked into manifest: {leaked}"
 
 
 class TestFileListTest(TempDirTestCase):

@@ -14,7 +14,9 @@ class rotate(Command):
     """Delete older distributions"""
 
     description = "delete older distributions, keeping N newest files"
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('match=', 'm', "patterns to match (required)"),
         ('dist-dir=', 'd', "directory where the distributions are"),
         ('keep=', 'k', "number of matching distributions to keep"),
@@ -58,8 +60,7 @@ class rotate(Command):
             files = files[self.keep :]
             for t, f in files:
                 log.info("Deleting %s", f)
-                if not self.dry_run:
-                    if os.path.isdir(f):
-                        _shutil.rmtree(f)
-                    else:
-                        os.unlink(f)
+                if os.path.isdir(f):
+                    _shutil.rmtree(f)
+                else:
+                    os.unlink(f)

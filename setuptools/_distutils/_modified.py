@@ -9,7 +9,6 @@ from typing import Literal, TypeVar
 
 from jaraco.functools import splat
 
-from .compat.py39 import zip_strict
 from .errors import DistutilsFileError
 
 _SourcesT = TypeVar(
@@ -57,8 +56,8 @@ def newer_pairwise(
     targets) where source is newer than target, according to the semantics
     of 'newer()'.
     """
-    newer_pairs = filter(splat(newer), zip_strict(sources, targets))
-    return tuple(map(list, zip(*newer_pairs))) or ([], [])
+    newer_pairs = filter(splat(newer), zip(sources, targets, strict=True))
+    return tuple(map(list, zip(*newer_pairs, strict=False))) or ([], [])
 
 
 def newer_group(

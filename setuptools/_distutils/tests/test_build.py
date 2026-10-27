@@ -9,7 +9,7 @@ from sysconfig import get_config_var, get_platform
 
 class TestBuild(support.TempdirManager):
     def test_finalize_options(self):
-        pkg_dir, dist = self.create_dist()
+        _pkg_dir, dist = self.create_dist()
         cmd = build(dist)
         cmd.finalize_options()
 

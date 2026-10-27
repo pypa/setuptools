@@ -52,7 +52,7 @@ class install(orig.install):
         ('install_egg_info', lambda self: True),
         ('install_scripts', lambda self: True),
     ]
-    _nc = dict(new_commands)
+    _nc: ClassVar[dict] = dict(new_commands)
 
     def initialize_options(self):
         SetuptoolsDeprecationWarning.emit(
@@ -74,11 +74,12 @@ class install(orig.install):
         super().finalize_options()
         if self.root:
             self.single_version_externally_managed = True
-        elif self.single_version_externally_managed:
-            if not self.root and not self.record:
-                raise DistutilsArgError(
-                    "You must specify --record or --root when building system packages"
-                )
+        elif (
+            self.single_version_externally_managed and not self.root and not self.record
+        ):
+            raise DistutilsArgError(
+                "You must specify --record or --root when building system packages"
+            )
 
     def handle_extra_path(self):
         if self.root or self.single_version_externally_managed:

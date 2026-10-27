@@ -33,7 +33,7 @@ class CommandSpec(list):
     those passed to Popen.
     """
 
-    options: list[str] = []
+    options: list[str] = []  # noqa: RUF012 # reassigned per-instance in CommandSpec.best
     split_args = _SplitArgs()
 
     @classmethod

@@ -25,7 +25,7 @@ def _copy_file_contents(src, dst, buffer_size=16 * 1024):  # noqa: C901
     fdst = None
     try:
         try:
-            fsrc = open(src, 'rb')
+            fsrc = open(src, 'rb')  # noqa: SIM115 # closed in the finally below
         except OSError as e:
             raise DistutilsFileError(f"could not open '{src}': {e.strerror}")
 
@@ -36,7 +36,7 @@ def _copy_file_contents(src, dst, buffer_size=16 * 1024):  # noqa: C901
                 raise DistutilsFileError(f"could not delete '{dst}': {e.strerror}")
 
         try:
-            fdst = open(dst, 'wb')
+            fdst = open(dst, 'wb')  # noqa: SIM115 # closed in the finally below
         except OSError as e:
             raise DistutilsFileError(f"could not create '{dst}': {e.strerror}")
 
@@ -68,7 +68,6 @@ def copy_file(  # noqa: C901
     update=False,
     link=None,
     verbose=True,
-    dry_run=False,
 ):
     """Copy a file 'src' to 'dst'.  If 'dst' is a directory, then 'src' is
     copied there with the same name; otherwise, it must be a filename.  (If
@@ -91,8 +90,7 @@ def copy_file(  # noqa: C901
     other systems, uses '_copy_file_contents()' to copy file contents.
 
     Return a tuple (dest_name, copied): 'dest_name' is the actual name of
-    the output file, and 'copied' is true if the file was copied (or would
-    have been copied, if 'dry_run' true).
+    the output file, and 'copied' is true if the file was copied.
     """
     # XXX if the destination file already exists, we clobber it if
     # copying, but blow up if linking.  Hmmm.  And I don't know what
@@ -102,7 +100,7 @@ def copy_file(  # noqa: C901
     # (not update) and (src newer than dst).
 
     from distutils._modified import newer
-    from stat import S_IMODE, ST_ATIME, ST_MODE, ST_MTIME
+    from stat import S_IMODE
 
     if not os.path.isfile(src):
         raise DistutilsFileError(
@@ -131,12 +129,9 @@ def copy_file(  # noqa: C901
         else:
             log.info("%s %s -> %s", action, src, dst)
 
-    if dry_run:
-        return (dst, True)
-
     # If linking (hard or symbolic), use the appropriate system call
     # (Unix only, of course, but that's the caller's responsibility)
-    elif link == 'hard':
+    if link == 'hard':
         if not (os.path.exists(dst) and os.path.samefile(src, dst)):
             try:
                 os.link(src, dst)
@@ -147,10 +142,9 @@ def copy_file(  # noqa: C901
                 pass
             else:
                 return (dst, True)
-    elif link == 'sym':
-        if not (os.path.exists(dst) and os.path.samefile(src, dst)):
-            os.symlink(src, dst)
-            return (dst, True)
+    elif link == 'sym' and not (os.path.exists(dst) and os.path.samefile(src, dst)):
+        os.symlink(src, dst)
+        return (dst, True)
 
     # Otherwise (non-Mac, not linking), copy the file contents and
     # (optionally) copy the times and mode.
@@ -161,15 +155,15 @@ def copy_file(  # noqa: C901
         # According to David Ascher <da@ski.org>, utime() should be done
         # before chmod() (at least under NT).
         if preserve_times:
-            os.utime(dst, (st[ST_ATIME], st[ST_MTIME]))
+            os.utime(dst, ns=(st.st_atime_ns, st.st_mtime_ns))
         if preserve_mode:
-            os.chmod(dst, S_IMODE(st[ST_MODE]))
+            os.chmod(dst, S_IMODE(st.st_mode))
 
     return (dst, True)
 
 
 # XXX I suspect this is Unix-specific -- need porting help!
-def move_file(src, dst, verbose=True, dry_run=False):  # noqa: C901
+def move_file(src, dst, verbose=True):  # noqa: C901
     """Move a file 'src' to 'dst'.  If 'dst' is a directory, the file will
     be moved into it with the same name; otherwise, 'src' is just renamed
     to 'dst'.  Return the new full name of the file.
@@ -182,9 +176,6 @@ def move_file(src, dst, verbose=True, dry_run=False):  # noqa: C901
 
     if verbose >= 1:
         log.info("moving %s -> %s", src, dst)
-
-    if dry_run:
-        return dst
 
     if not isfile(src):
         raise DistutilsFileError(f"can't move '{src}': not a regular file")

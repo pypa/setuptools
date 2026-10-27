@@ -31,7 +31,7 @@ class build_scripts(Command):
         ('executable=', 'e', "specify final destination interpreter path"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['force']
+    boolean_options: ClassVar = ['force']
 
     def initialize_options(self):
         self.build_dir = None
@@ -87,13 +87,7 @@ class build_scripts(Command):
 
         # Always open the file, but ignore failures in dry-run mode
         # in order to attempt to copy directly.
-        try:
-            f = tokenize.open(script)
-        except OSError:
-            if not self.dry_run:
-                raise
-            f = None
-        else:
+        with tokenize.open(script) as f:
             first_line = f.readline()
             if not first_line:
                 self.warn(f"{script} is an empty file (skipping)")
@@ -101,22 +95,17 @@ class build_scripts(Command):
 
             shebang_match = shebang_pattern.match(first_line)
 
-        updated_files.append(outfile)
-        if shebang_match:
-            log.info("copying and adjusting %s -> %s", script, self.build_dir)
-            if not self.dry_run:
+            updated_files.append(outfile)
+            if shebang_match:
+                log.info("copying and adjusting %s -> %s", script, self.build_dir)
                 post_interp = shebang_match.group(1) or ''
                 shebang = "#!" + self.executable + post_interp + "\n"
                 self._validate_shebang(shebang, f.encoding)
                 with open(outfile, "w", encoding=f.encoding) as outf:
                     outf.write(shebang)
                     outf.writelines(f.readlines())
-            if f:
-                f.close()
-        else:
-            if f:
-                f.close()
-            self.copy_file(script, outfile)
+            else:
+                self.copy_file(script, outfile)
 
     def _change_modes(self, outfiles):
         if os.name != 'posix':
@@ -126,10 +115,6 @@ class build_scripts(Command):
             self._change_mode(file)
 
     def _change_mode(self, file):
-        if self.dry_run:
-            log.info("changing mode of %s", file)
-            return
-
         oldmode = os.stat(file)[ST_MODE] & 0o7777
         newmode = (oldmode | 0o555) & 0o7777
         if newmode != oldmode:

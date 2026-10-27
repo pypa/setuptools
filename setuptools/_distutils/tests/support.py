@@ -116,7 +116,7 @@ def fixup_build_ext(cmd):
             if sys.platform == 'darwin':
                 cmd.library_dirs = []
             else:
-                name, equals, value = runshared.partition('=')
+                _name, _equals, value = runshared.partition('=')
                 cmd.library_dirs = [d for d in value.split(os.pathsep) if d]
 
 

@@ -11,6 +11,7 @@ import tempfile
 import unicodedata
 from inspect import cleandoc
 from pathlib import Path
+from typing import ClassVar
 from unittest import mock
 
 import jaraco.path
@@ -92,7 +93,7 @@ def latin1_fail():
         desc, filename = tempfile.mkstemp(suffix=Filenames.latin_1)
         os.close(desc)
         os.remove(filename)
-    except Exception:
+    except Exception:  # noqa: BLE001 # intentional broad fallback
         return True
 
 
@@ -254,21 +255,17 @@ class TestSdistTest:
         for path in symlinked:
             assert path not in manifest
 
-    _INVALID_PATHS = {
-        "must be relative": lambda: (
-            os.path.abspath(os.path.join("sdist_test", "f.h"))
+    _INVALID_PATHS: ClassVar[dict] = {
+        "must be relative": lambda: os.path.abspath(os.path.join("sdist_test", "f.h")),
+        "can't have `..` segments": lambda: os.path.join(
+            "sdist_test", "..", "sdist_test", "f.h"
         ),
-        "can't have `..` segments": lambda: (
-            os.path.join("sdist_test", "..", "sdist_test", "f.h")
+        "doesn't exist": lambda: os.path.join(
+            "sdist_test", "this_file_does_not_exist.h"
         ),
-        "doesn't exist": lambda: (
-            os.path.join("sdist_test", "this_file_does_not_exist.h")
-        ),
-        "must be inside the project root": lambda: (
-            symlink_or_skip_test(
-                touch(os.path.join("..", "outside_of_project_root.h")),
-                "symlink.h",
-            )
+        "must be inside the project root": lambda: symlink_or_skip_test(
+            touch(os.path.join("..", "outside_of_project_root.h")),
+            "symlink.h",
         ),
     }
 
@@ -307,11 +304,7 @@ class TestSdistTest:
         expected_message = [
             message
             for (logger, level, message) in caplog.record_tuples
-            if (
-                logger == "root"  #
-                and level == logging.INFO  #
-                and invalid_path in message  #
-            )
+            if (logger == "root" and level == logging.INFO and invalid_path in message)
         ]
         assert len(expected_message) == 1
         (expected_message,) = expected_message
@@ -419,7 +412,7 @@ class TestSdistTest:
         # lowercase all names so we can test in a
         # case-insensitive way to make sure the files
         # are not included.
-        manifest = map(lambda x: x.lower(), cmd.filelist.files)
+        manifest = (x.lower() for x in cmd.filelist.files)
         assert 'readme.rst' not in manifest, manifest
         assert 'setup.py' not in manifest, manifest
         assert 'setup.cfg' not in manifest, manifest
@@ -577,7 +570,7 @@ class TestSdistTest:
         # Add UTF-8 filename to manifest
         filename = os.path.join(b'sdist_test', Filenames.utf_8)
         cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
-        manifest = open(cmd.manifest, 'ab')
+        manifest = open(cmd.manifest, 'ab')  # noqa: SIM115 # handle managed explicitly
         manifest.write(b'\n' + filename)
         manifest.close()
 
@@ -608,7 +601,7 @@ class TestSdistTest:
         # Add Latin-1 filename to manifest
         filename = os.path.join(b'sdist_test', Filenames.latin_1)
         cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
-        manifest = open(cmd.manifest, 'ab')
+        manifest = open(cmd.manifest, 'ab')  # noqa: SIM115 # handle managed explicitly
         manifest.write(b'\n' + filename)
         manifest.close()
 
@@ -696,7 +689,7 @@ class TestSdistTest:
             filename = filename.decode('latin-1')
             assert filename not in cmd.filelist.files
 
-    _EXAMPLE_DIRECTIVES = {
+    _EXAMPLE_DIRECTIVES: ClassVar[dict] = {
         "setup.cfg - long_description and version": """
             [metadata]
             name = testing

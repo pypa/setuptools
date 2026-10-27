@@ -1,7 +1,7 @@
 import site
 import subprocess
 import sys
-from typing import cast
+from typing import ClassVar, cast
 
 from setuptools import Command
 from setuptools.warnings import SetuptoolsDeprecationWarning
@@ -10,14 +10,16 @@ from setuptools.warnings import SetuptoolsDeprecationWarning
 class develop(Command):
     """Set up package for development"""
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ("install-dir=", "d", "install package to DIR"),
         ('no-deps', 'N', "don't install dependencies"),
         ('user', None, f"install in user site-package '{site.USER_SITE}'"),
         ('prefix=', None, "installation prefix"),
         ("index-url=", "i", "base URL of Python Package Index"),
     ]
-    boolean_options = [
+    boolean_options: ClassVar[list[str]] = [
         'no-deps',
         'user',
     ]

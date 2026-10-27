@@ -15,7 +15,7 @@ from textwrap import indent
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from typing import TypeAlias
 
 _DueDate: TypeAlias = tuple[int, int, int]  # time tuple
 _INDENT = 8 * " "
@@ -82,7 +82,7 @@ class SetuptoolsWarning(UserWarning):
         parts = [x for x in possible_parts if x]
         if parts:
             body = indent(_TEMPLATE.format(details="\n".join(parts)), _INDENT)
-            return "\n".join([summary, "!!\n", body, "\n!!"])
+            return f"{summary}\n!!\n\n{body}\n\n!!"
         return summary
 
 

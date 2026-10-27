@@ -15,7 +15,7 @@ def run() -> None:
     Run the script in sys.argv[1] as if it had
     been invoked naturally.
     """
-    __builtins__
+    __builtins__  # noqa: B018 # evaluated to trigger validation/side effect
     script_name = sys.argv[1]
     namespace = dict(
         __file__=script_name,
@@ -29,7 +29,7 @@ def run() -> None:
         script = fid.read()
     norm_script = script.replace('\\r\\n', '\\n')
     code = compile(norm_script, script_name, 'exec')
-    exec(code, namespace)
+    exec(code, namespace)  # noqa: S102 # exec is intentional here
 
 
 if __name__ == '__main__':

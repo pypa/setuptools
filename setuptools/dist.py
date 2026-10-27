@@ -10,7 +10,7 @@ import sys
 from collections.abc import Iterable, Iterator, MutableMapping, Sequence
 from glob import glob
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from more_itertools import partition, unique_everseen
 from packaging.markers import InvalidMarker, Marker
@@ -44,7 +44,7 @@ from distutils.fancy_getopt import translate_longopt
 from distutils.util import strtobool
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from typing import TypeAlias
 
 
 __all__ = ['Distribution']
@@ -59,10 +59,10 @@ Supported iterable types that are known to be:
 - not imply a nested type (like `dict`)
 for use with `isinstance`.
 """
-_Sequence: TypeAlias = Union[tuple[str, ...], list[str]]
+_Sequence: TypeAlias = tuple[str, ...] | list[str]
 # This is how stringifying _Sequence would look in Python 3.10
 _sequence_type_repr = "tuple[str, ...] | list[str]"
-_OrderedStrSequence: TypeAlias = Union[str, dict[str, Any], Sequence[str]]
+_OrderedStrSequence: TypeAlias = str | dict[str, Any] | Sequence[str]
 """
 :meta private:
 Avoid single-use iterable. Disallow sets.
@@ -285,7 +285,7 @@ class Distribution(_Distribution):
     the distribution.
     """
 
-    _DISTUTILS_UNSUPPORTED_METADATA = {
+    _DISTUTILS_UNSUPPORTED_METADATA: ClassVar[dict] = {
         'long_description_content_type': lambda: None,
         'project_urls': dict,
         'provides_extras': dict,  # behaves like an ordered set
@@ -384,7 +384,7 @@ class Distribution(_Distribution):
         self.metadata.extras_require = self.extras_require
 
         if self.extras_require:
-            for extra in self.extras_require.keys():
+            for extra in self.extras_require:
                 # Setuptools allows a weird "<name>:<env markers> syntax for extras
                 extra = extra.split(':')[0]
                 if extra:
@@ -512,7 +512,7 @@ class Distribution(_Distribution):
                 of the Python package (normally marked by `pyproject.toml`).
                 """,
                 see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
-                due_date=(2026, 3, 20),  # Introduced in 2025-03-20
+                due_date=(2027, 2, 18),  # Introduced in 2025-03-20
                 # Replace with InvalidConfigError after deprecation
             )
         if pattern.startswith((os.sep, "/")) or ":\\" in pattern:
@@ -525,7 +525,7 @@ class Distribution(_Distribution):
                 "Pattern {pattern!r} contains invalid characters.",
                 pattern=pattern,
                 see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
-                due_date=(2026, 3, 20),  # Introduced in 2025-02-20
+                due_date=(2027, 2, 18),  # Introduced in 2025-02-20
             )
 
         found = glob(pattern, recursive=True)
@@ -535,7 +535,7 @@ class Distribution(_Distribution):
                 "Cannot find any files for the given pattern.",
                 "Pattern {pattern!r} did not match any files.",
                 pattern=pattern,
-                due_date=(2026, 3, 20),  # Introduced in 2025-02-20
+                due_date=(2027, 2, 18),  # Introduced in 2025-02-20
                 # PEP 639 requires us to error, but as a transition period
                 # we will only issue a warning to give people time to prepare.
                 # After the transition, this should raise an InvalidConfigError.
@@ -614,7 +614,7 @@ class Distribution(_Distribution):
             alias = self.negative_opt.get(opt)
             if alias:
                 val = not strtobool(val)
-            elif opt in ('verbose', 'dry_run'):  # ugh!
+            elif opt == 'verbose':
                 val = strtobool(val)
 
             try:
@@ -785,7 +785,7 @@ class Distribution(_Distribution):
 
         defined = metadata.entry_points(group=group)
         filtered = itertools.filterfalse(self._removed, defined)
-        loaded = map(lambda e: e.load(), filtered)
+        loaded = (e.load() for e in filtered)
         for ep in sorted(loaded, key=by_order):
             ep(self)
 
@@ -851,8 +851,7 @@ class Distribution(_Distribution):
         for ep in eps:
             self.cmdclass[command] = cmdclass = ep.load()
             return cmdclass
-        else:
-            return _Distribution.get_command_class(self, command)
+        return _Distribution.get_command_class(self, command)
 
     def print_commands(self):
         for ep in metadata.entry_points(group='distutils.commands'):

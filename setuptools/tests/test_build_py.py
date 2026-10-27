@@ -3,6 +3,7 @@ import shutil
 import stat
 import warnings
 from pathlib import Path
+from typing import ClassVar
 from unittest.mock import Mock
 
 import jaraco.path
@@ -252,7 +253,7 @@ def test_existing_egg_info(tmpdir_cwd, monkeypatch):
     assert build_py.data_files
 
     # Make sure the list of outputs is actually OK
-    outputs = map(lambda x: x.replace(os.sep, "/"), build_py.get_outputs())
+    outputs = (x.replace(os.sep, "/") for x in build_py.get_outputs())
     assert outputs
     example = str(Path(build_py.build_lib, "mypkg/__init__.py")).replace(os.sep, "/")
     assert example in outputs
@@ -335,7 +336,7 @@ def test_get_outputs(tmpdir_cwd):
 
 
 class TestTypeInfoFiles:
-    PYPROJECTS = {
+    PYPROJECTS: ClassVar[dict] = {
         "default_pyproject": DALS(
             """
             [project]
@@ -368,7 +369,7 @@ class TestTypeInfoFiles:
         ),
     }
 
-    EXAMPLES = {
+    EXAMPLES: ClassVar[dict] = {
         "simple_namespace": {
             "directory_structure": {
                 "foo": {

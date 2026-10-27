@@ -17,6 +17,7 @@ from distutils.archive_util import (
 from distutils.spawn import spawn
 from distutils.tests import support
 from os.path import splitdrive
+from typing import ClassVar
 
 import path
 import pytest
@@ -102,15 +103,12 @@ class ArchiveUtilTestCase(support.TempdirManager):
         assert self._tarinfo(tarball) == self._created_files
 
     def _tarinfo(self, path):
-        tar = tarfile.open(path)
-        try:
+        with tarfile.open(path) as tar:
             names = tar.getnames()
             names.sort()
             return names
-        finally:
-            tar.close()
 
-    _zip_created_files = [
+    _zip_created_files: ClassVar = [
         'dist/',
         'dist/file1',
         'dist/file2',
@@ -118,7 +116,7 @@ class ArchiveUtilTestCase(support.TempdirManager):
         'dist/sub/file3',
         'dist/sub2/',
     ]
-    _created_files = [p.rstrip('/') for p in _zip_created_files]
+    _created_files: ClassVar = [p.rstrip('/') for p in _zip_created_files]
 
     def _create_files(self):
         # creating something to tar
@@ -172,17 +170,6 @@ class ArchiveUtilTestCase(support.TempdirManager):
         os.chdir(tmpdir)
         try:
             make_tarball(base_name, 'dist', compress=None)
-        finally:
-            os.chdir(old_dir)
-        tarball = base_name + '.tar'
-        assert os.path.exists(tarball)
-
-        # now for a dry_run
-        base_name = os.path.join(tmpdir2, 'archive')
-        old_dir = os.getcwd()
-        os.chdir(tmpdir)
-        try:
-            make_tarball(base_name, 'dist', compress=None, dry_run=True)
         finally:
             os.chdir(old_dir)
         tarball = base_name + '.tar'
@@ -252,7 +239,7 @@ class ArchiveUtilTestCase(support.TempdirManager):
         try:
             try:
                 make_archive('xxx', 'xxx', root_dir=self.mkdtemp())
-            except Exception:
+            except Exception:  # noqa: BLE001, S110 # the failure itself is under test
                 pass
             assert os.getcwd() == current_dir
         finally:
@@ -344,10 +331,7 @@ class ArchiveUtilTestCase(support.TempdirManager):
         assert os.path.exists(archive_name)
 
         # now checks the rights
-        archive = tarfile.open(archive_name)
-        try:
+        with tarfile.open(archive_name) as archive:
             for member in archive.getmembers():
                 assert member.uid == 0
                 assert member.gid == 0
-        finally:
-            archive.close()

@@ -12,7 +12,7 @@ import textwrap
 from collections.abc import Iterator
 from sysconfig import get_path, get_platform, get_python_version
 from types import CodeType
-from typing import TYPE_CHECKING, AnyStr, Literal
+from typing import TYPE_CHECKING, ClassVar, Literal, TypeVar
 
 from setuptools import Command
 from setuptools.extension import Library
@@ -23,8 +23,11 @@ from distutils import log
 from distutils.dir_util import mkpath, remove_tree
 
 if TYPE_CHECKING:
+    from typing import TypeAlias
+
     from _typeshed import GenericPath
-    from typing_extensions import TypeAlias
+
+    _StrOrBytesT = TypeVar("_StrOrBytesT", str, bytes)
 
 # Same as zipfile._ZipFileMode from typeshed
 _ZipFileMode: TypeAlias = Literal["r", "w", "x", "a"]
@@ -42,8 +45,8 @@ def strip_module(filename):
 
 
 def sorted_walk(
-    dir: GenericPath[AnyStr],
-) -> Iterator[tuple[AnyStr, list[AnyStr], list[AnyStr]]]:
+    dir: GenericPath[_StrOrBytesT],
+) -> Iterator[tuple[_StrOrBytesT, list[_StrOrBytesT], list[_StrOrBytesT]]]:
     """Do os.walk in a reproducible way,
     independent of indeterministic filesystem readdir order
     """
@@ -74,26 +77,36 @@ def write_stub(resource, pyfile) -> None:
 class bdist_egg(Command):
     description = 'create an "egg" distribution'
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('bdist-dir=', 'b', "temporary directory for creating the distribution"),
         (
             'plat-name=',
             'p',
-            "platform name to embed in generated filenames "
-            "(by default uses `sysconfig.get_platform()`)",
+            (
+                "platform name to embed in generated filenames "
+                "(by default uses `sysconfig.get_platform()`)"
+            ),
         ),
         ('exclude-source-files', None, "remove all .py files from the generated egg"),
         (
             'keep-temp',
             'k',
-            "keep the pseudo-installation tree around after "
-            "creating the distribution archive",
+            (
+                "keep the pseudo-installation tree around after "
+                "creating the distribution archive"
+            ),
         ),
         ('dist-dir=', 'd', "directory to put final built distributions in"),
         ('skip-build', None, "skip rebuilding everything (for testing/debugging)"),
     ]
 
-    boolean_options = ['keep-temp', 'skip-build', 'exclude-source-files']
+    boolean_options: ClassVar[list[str]] = [
+        'keep-temp',
+        'skip-build',
+        'exclude-source-files',
+    ]
 
     def initialize_options(self):
         self.bdist_dir = None
@@ -134,15 +147,14 @@ class bdist_egg(Command):
         old, self.distribution.data_files = self.distribution.data_files, []
 
         for item in old:
-            if isinstance(item, tuple) and len(item) == 2:
-                if os.path.isabs(item[0]):
-                    realpath = os.path.realpath(item[0])
-                    normalized = os.path.normcase(realpath)
-                    if normalized == site_packages or normalized.startswith(
-                        site_packages + os.sep
-                    ):
-                        item = realpath[len(site_packages) + 1 :], item[1]
-                        # XXX else: raise ???
+            if isinstance(item, tuple) and len(item) == 2 and os.path.isabs(item[0]):
+                realpath = os.path.realpath(item[0])
+                normalized = os.path.normcase(realpath)
+                if normalized == site_packages or normalized.startswith(
+                    site_packages + os.sep
+                ):
+                    item = realpath[len(site_packages) + 1 :], item[1]
+                    # XXX else: raise ???
             self.distribution.data_files.append(item)
 
         try:
@@ -159,7 +171,6 @@ class bdist_egg(Command):
         for dirname in INSTALL_DIRECTORY_ATTRS:
             kw.setdefault(dirname, self.bdist_dir)
         kw.setdefault('skip_build', self.skip_build)
-        kw.setdefault('dry_run', self.dry_run)
         cmd = self.reinitialize_command(cmdname, **kw)
         self.run_command(cmdname)
         return cmd
@@ -186,8 +197,7 @@ class bdist_egg(Command):
             pyfile = os.path.join(self.bdist_dir, strip_module(filename) + '.py')
             self.stubs.append(pyfile)
             log.info("creating stub loader for %s", ext_name)
-            if not self.dry_run:
-                write_stub(os.path.basename(ext_name), pyfile)
+            write_stub(os.path.basename(ext_name), pyfile)
             to_compile.append(pyfile)
             ext_outputs[p] = ext_name.replace(os.sep, '/')
 
@@ -209,15 +219,13 @@ class bdist_egg(Command):
         native_libs = os.path.join(egg_info, "native_libs.txt")
         if all_outputs:
             log.info("writing %s", native_libs)
-            if not self.dry_run:
-                ensure_directory(native_libs)
-                with open(native_libs, 'wt', encoding="utf-8") as libs_file:
-                    libs_file.write('\n'.join(all_outputs))
-                    libs_file.write('\n')
+            ensure_directory(native_libs)
+            with open(native_libs, 'wt', encoding="utf-8") as libs_file:
+                libs_file.write('\n'.join(all_outputs))
+                libs_file.write('\n')
         elif os.path.isfile(native_libs):
             log.info("removing %s", native_libs)
-            if not self.dry_run:
-                os.unlink(native_libs)
+            os.unlink(native_libs)
 
         write_safety_flag(os.path.join(archive_root, 'EGG-INFO'), self.zip_safe())
 
@@ -235,11 +243,10 @@ class bdist_egg(Command):
             self.egg_output,
             archive_root,
             verbose=self.verbose,
-            dry_run=self.dry_run,  # type: ignore[arg-type] # Is an actual boolean in vendored _distutils
             mode=self.gen_header(),
         )
         if not self.keep_temp:
-            remove_tree(self.bdist_dir, dry_run=self.dry_run)
+            remove_tree(self.bdist_dir)
 
         # Add to 'Distribution.dist_files' so that the "upload" command works
         getattr(self.distribution, 'dist_files', []).append((
@@ -318,14 +325,15 @@ class bdist_egg(Command):
                     continue
                 fullname = build_cmd.get_ext_fullname(ext.name)
                 filename = build_cmd.get_ext_filename(fullname)
-                if not os.path.basename(filename).startswith('dl-'):
-                    if os.path.exists(os.path.join(self.bdist_dir, filename)):
-                        ext_outputs.append(filename)
+                if not os.path.basename(filename).startswith('dl-') and os.path.exists(
+                    os.path.join(self.bdist_dir, filename)
+                ):
+                    ext_outputs.append(filename)
 
         return all_outputs, ext_outputs
 
 
-NATIVE_EXTENSIONS: dict[str, None] = dict.fromkeys('.dll .so .dylib .pyd'.split())
+NATIVE_EXTENSIONS: dict[str, None] = dict.fromkeys(['.dll', '.so', '.dylib', '.pyd'])
 
 
 def walk_egg(egg_dir: StrPath) -> Iterator[tuple[str, list[str], list[str]]]:
@@ -383,7 +391,7 @@ def scan_module(egg_dir, base, name, stubs):
     pkg = base[len(egg_dir) + 1 :].replace(os.sep, '.')
     module = pkg + (pkg and '.' or '') + os.path.splitext(name)[0]
     skip = 16  # skip magic & reserved? & date & file size
-    f = open(filename, 'rb')
+    f = open(filename, 'rb')  # noqa: SIM115 # handle managed explicitly
     f.read(skip)
     code = marshal.load(f)
     f.close()
@@ -446,7 +454,6 @@ def make_zipfile(
     zip_filename: StrPathT,
     base_dir,
     verbose: bool = False,
-    dry_run: bool = False,
     compress=True,
     mode: _ZipFileMode = 'w',
 ) -> StrPathT:
@@ -458,7 +465,7 @@ def make_zipfile(
     """
     import zipfile
 
-    mkpath(os.path.dirname(zip_filename), dry_run=dry_run)  # type: ignore[arg-type] # python/mypy#18075
+    mkpath(os.path.dirname(zip_filename))  # type: ignore[arg-type] # python/mypy#18075
     log.info("creating '%s' and adding '%s' to it", zip_filename, base_dir)
 
     def visit(z, dirname, names):
@@ -466,17 +473,12 @@ def make_zipfile(
             path = os.path.normpath(os.path.join(dirname, name))
             if os.path.isfile(path):
                 p = path[len(base_dir) + 1 :]
-                if not dry_run:
-                    z.write(path, p)
+                z.write(path, p)
                 log.debug("adding '%s'", p)
 
     compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
-    if not dry_run:
-        z = zipfile.ZipFile(zip_filename, mode, compression=compression)
-        for dirname, dirs, files in sorted_walk(base_dir):
-            visit(z, dirname, files)
-        z.close()
-    else:
-        for dirname, dirs, files in sorted_walk(base_dir):
-            visit(None, dirname, files)
+    z = zipfile.ZipFile(zip_filename, mode, compression=compression)
+    for dirname, dirs, files in sorted_walk(base_dir):
+        visit(z, dirname, files)
+    z.close()
     return zip_filename

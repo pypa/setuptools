@@ -1,4 +1,5 @@
 import os
+from typing import ClassVar
 
 from setuptools import Command, namespaces
 from setuptools.archive_util import unpack_archive
@@ -13,7 +14,9 @@ class install_egg_info(namespaces.Installer, Command):
 
     description = "Install an .egg-info directory for the package"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('install-dir=', 'd', "directory to install to"),
     ]
 
@@ -31,11 +34,10 @@ class install_egg_info(namespaces.Installer, Command):
     def run(self) -> None:
         self.run_command('egg_info')
         if os.path.isdir(self.target) and not os.path.islink(self.target):
-            dir_util.remove_tree(self.target, dry_run=self.dry_run)
+            dir_util.remove_tree(self.target)
         elif os.path.exists(self.target):
             self.execute(os.unlink, (self.target,), "Removing " + self.target)
-        if not self.dry_run:
-            ensure_directory(self.target)
+        ensure_directory(self.target)
         self.execute(self.copytree, (), f"Copying {self.source} to {self.target}")
         self.install_namespaces()
 

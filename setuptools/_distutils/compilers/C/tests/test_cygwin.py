@@ -1,9 +1,8 @@
-"""Tests for distutils.cygwinccompiler."""
+"""Tests for the Cygwin C compiler."""
 
 import os
 import sys
-from distutils import sysconfig
-from distutils.tests import support
+import sysconfig
 
 import pytest
 
@@ -11,23 +10,20 @@ from .. import cygwin
 
 
 @pytest.fixture(autouse=True)
-def stuff(request, monkeypatch, distutils_managed_tempdir):
+def stuff(request, monkeypatch, tmp_path):
     self = request.instance
-    self.python_h = os.path.join(self.mkdtemp(), 'python.h')
-    monkeypatch.setattr(sysconfig, 'get_config_h_filename', self._get_config_h_filename)
+    self.python_h = tmp_path / 'python.h'
+    monkeypatch.setattr(
+        sysconfig, 'get_config_h_filename', lambda: os.fspath(self.python_h)
+    )
     monkeypatch.setattr(sys, 'version', sys.version)
 
 
-class TestCygwinCCompiler(support.TempdirManager):
-    def _get_config_h_filename(self):
-        return self.python_h
-
+class TestCygwinCCompiler:
     @pytest.mark.skipif('sys.platform != "cygwin"')
     @pytest.mark.skipif('not os.path.exists("/usr/lib/libbash.dll.a")')
     def test_find_library_file(self):
-        from distutils.cygwinccompiler import CygwinCCompiler
-
-        compiler = CygwinCCompiler()
+        compiler = cygwin.Compiler()
         link_name = "bash"
         linkable_file = compiler.find_library_file(["/usr/lib"], link_name)
         assert linkable_file is not None
@@ -36,9 +32,7 @@ class TestCygwinCCompiler(support.TempdirManager):
 
     @pytest.mark.skipif('sys.platform != "cygwin"')
     def test_runtime_library_dir_option(self):
-        from distutils.cygwinccompiler import CygwinCCompiler
-
-        compiler = CygwinCCompiler()
+        compiler = cygwin.Compiler()
         assert compiler.runtime_library_dir_option('/foo') == []
 
     def test_check_config_h(self):
@@ -58,11 +52,11 @@ class TestCygwinCCompiler(support.TempdirManager):
         assert cygwin.check_config_h()[0] == cygwin.CONFIG_H_UNCERTAIN
 
         # if it exists but does not contain __GNUC__, it returns CONFIG_H_NOTOK
-        self.write_file(self.python_h, 'xxx')
+        self.python_h.write_text('xxx')
         assert cygwin.check_config_h()[0] == cygwin.CONFIG_H_NOTOK
 
         # and CONFIG_H_OK if __GNUC__ is found
-        self.write_file(self.python_h, 'xxx __GNUC__ xxx')
+        self.python_h.write_text('xxx __GNUC__ xxx')
         assert cygwin.check_config_h()[0] == cygwin.CONFIG_H_OK
 
     def test_get_msvcr(self):
@@ -70,7 +64,5 @@ class TestCygwinCCompiler(support.TempdirManager):
 
     @pytest.mark.skipif('sys.platform != "cygwin"')
     def test_dll_libraries_not_none(self):
-        from distutils.cygwinccompiler import CygwinCCompiler
-
-        compiler = CygwinCCompiler()
+        compiler = cygwin.Compiler()
         assert compiler.dll_libraries is not None

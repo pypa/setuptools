@@ -293,7 +293,7 @@ A few important points for writing revision control file finders:
   inform the user of the missing program(s).
 
 
-.. _distutils: https://docs.python.org/3.9/library/distutils.html
+.. _distutils: https://setuptools.pypa.io/en/latest/deprecated/distutils/index.html
 
 
 Final Remarks

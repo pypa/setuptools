@@ -3,16 +3,14 @@
 import os
 import stat
 import sys
-import unittest.mock as mock
 from distutils.errors import DistutilsExecError
 from distutils.spawn import find_executable, spawn
 from distutils.tests import support
+from unittest import mock
 
 import path
 import pytest
-from test.support import unix_shell
-
-from .compat import py39 as os_helper
+from test.support import os_helper, unix_shell
 
 
 class TestSpawn(support.TempdirManager):

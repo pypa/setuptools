@@ -10,11 +10,11 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "80.9.0"
+version = "84.2.1"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
-description = "Easily download, build, install, upgrade, and uninstall Python packages"
+description = "Most extensible Python build backend with support for C/C++ extension modules"
 readme = "README.rst"
 classifiers = [
 	"Development Status :: 5 - Production/Stable",
@@ -26,7 +26,7 @@ classifiers = [
 	"Topic :: System :: Systems Administration",
 	"Topic :: Utilities",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 # For license information, please check license files included in the distribution.
 dependencies = [
 ]
@@ -46,7 +46,7 @@ test = [
 	"virtualenv>=13.0.0",
 	"wheel>=0.44.0", # Consistent requirement normalisation in METADATA (see #4547)
 	"pip>=19.1", # For proper file:// URLs support.
-	"packaging>=24.2",
+	"packaging>=26.3",
 	"jaraco.envs>=2.2",
 	"pytest-xdist>=3", # Dropped dependency on pytest-fork and py
 	"jaraco.path>=3.7.2", # Typing fixes
@@ -56,7 +56,6 @@ test = [
 	"tomli-w>=1.0.0",
 	"pytest-timeout",
 	'pytest-perf; sys_platform != "cygwin"', # workaround for jaraco/inflect#195, pydantic/pydantic-core#773 (see #3986)
-	'pyobjc<12; sys_platform == "darwin" and python_version <= "3.9"', # workaround for #5105
 	# for tools/finalize.py
 	'jaraco.develop >= 7.21; python_version >= "3.9" and sys_platform != "cygwin"',
 	"pytest-home >= 0.5",
@@ -96,15 +95,12 @@ doc = [
 ssl = []
 certs = []
 core = [
-	"packaging>=24.2",
+	"packaging>=26.3",
 	"more_itertools>=8.8",
 	"jaraco.text>=3.7",
 	"importlib_metadata>=6; python_version < '3.10'",
 	"tomli>=2.0.1; python_version < '3.11'",
 	"wheel>=0.43.0",
-
-	# pkg_resources
-	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
 
 	# for distutils
 	"jaraco.functools >= 4",
@@ -113,13 +109,13 @@ core = [
 
 check = [
 	# upstream
-	"pytest-checkdocs >= 2.4",
+	"pytest-checkdocs >= 2.14",
 	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
 
 	# local
 
-	# Removal of deprecated UP027, PT004 & PT005 astral-sh/ruff#14383
-	"ruff >= 0.8.0; sys_platform != 'cygwin'",
+	# Deprecated rules must now be selected by exact rule code
+	"ruff >= 0.13.0; sys_platform != 'cygwin'",
 ]
 
 cover = [
@@ -127,19 +123,21 @@ cover = [
 ]
 
 enabler = [
-	"pytest-enabler >= 2.2",
+	"pytest-enabler >= 3.4",
 ]
 
 type = [
 	# upstream
-	"pytest-mypy",
+	
+	# Exclude PyPy from type checks (python/mypy#20454 jaraco/skeleton#187)
+	"pytest-mypy >= 1.0.1; platform_python_implementation != 'PyPy'",
 
 	# local
 
 	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam
-	"mypy==1.14.*",
+	"mypy==1.18.*",
 	# Typing fixes in version newer than we require at runtime
 	"importlib_metadata>=7.0.2; python_version < '3.10'",
 	# Imported unconditionally in tools/finalize.py
@@ -205,7 +203,6 @@ include-package-data = true
 [tool.setuptools.packages.find]
 include = [
 	"setuptools*",
-	"pkg_resources*",
 	"_distutils_hack*",
 ]
 exclude = [
@@ -217,6 +214,10 @@ namespaces = true
 [tool.setuptools.exclude-package-data]
 # Remove ruff.toml when installing vendored packages (#4652)
 "*" = ["ruff.toml"]
+# Avoid shipping setuptools' own test suite in wheels (#5212)
+"setuptools" = ["tests/*"]
+"setuptools._distutils" = ["tests/*"]
+"setuptools._distutils.compilers.C" = ["tests/*"]
 
 [tool.distutils.sdist]
 formats = "zip"

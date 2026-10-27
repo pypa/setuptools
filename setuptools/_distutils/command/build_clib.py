@@ -36,7 +36,7 @@ class build_clib(Command):
         ('compiler=', 'c', "specify the compiler type"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['debug', 'force']
+    boolean_options: ClassVar = ['debug', 'force']
 
     help_options: ClassVar[list[tuple[str, str | None, str, Callable[[], object]]]] = [
         ('help-compiler', None, "list available compilers", show_compilers),
@@ -88,9 +88,7 @@ class build_clib(Command):
         if not self.libraries:
             return
 
-        self.compiler = new_compiler(
-            compiler=self.compiler, dry_run=self.dry_run, force=self.force
-        )
+        self.compiler = new_compiler(compiler=self.compiler, force=self.force)
         customize_compiler(self.compiler)
 
         if self.include_dirs is not None:

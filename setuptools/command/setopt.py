@@ -1,5 +1,6 @@
 import configparser
 import os
+from typing import ClassVar
 
 from .. import Command
 from ..unicode_utils import _cfg_read_utf8_with_fallback
@@ -27,7 +28,7 @@ def config_file(kind="local"):
     raise ValueError("config_file() type must be 'local', 'global', or 'user'", kind)
 
 
-def edit_config(filename, settings, dry_run=False) -> None:
+def edit_config(filename, settings) -> None:
     """Edit a configuration file to include `settings`
 
     `settings` is a dictionary of dictionaries or ``None`` values, keyed by
@@ -64,21 +65,22 @@ def edit_config(filename, settings, dry_run=False) -> None:
                     opts.set(section, option, value)
 
     log.info("Writing %s", filename)
-    if not dry_run:
-        with open(filename, 'w', encoding="utf-8") as f:
-            opts.write(f)
+    with open(filename, 'w', encoding="utf-8") as f:
+        opts.write(f)
 
 
 class option_base(Command):
     """Abstract base class for commands that mess with config files"""
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('global-config', 'g', "save options to the site-wide distutils.cfg file"),
         ('user-config', 'u', "save options to the current user's pydistutils.cfg file"),
         ('filename=', 'f', "configuration file to use (default=setup.cfg)"),
     ]
 
-    boolean_options = [
+    boolean_options: ClassVar[list[str]] = [
         'global-config',
         'user-config',
     ]
@@ -137,5 +139,4 @@ class setopt(option_base):
         edit_config(
             self.filename,
             {self.command: {self.option.replace('-', '_'): self.set_value}},
-            self.dry_run,
         )

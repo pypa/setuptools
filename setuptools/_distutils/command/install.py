@@ -10,9 +10,10 @@ import itertools
 import os
 import sys
 import sysconfig
+from collections.abc import Callable
 from distutils._log import log
 from site import USER_BASE, USER_SITE
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from ..core import Command
 from ..debug import DEBUG
@@ -140,10 +141,10 @@ def _remove_set(ob, attrs):
 
 
 def _resolve_scheme(name):
-    os_name, sep, key = name.partition('_')
+    _os_name, _sep, key = name.partition('_')
     try:
         resolved = sysconfig.get_preferred_scheme(key)
-    except Exception:
+    except Exception:  # noqa: BLE001 # any failure falls back to the framework scheme
         resolved = fw.scheme(name)
     return resolved
 
@@ -174,7 +175,7 @@ def _scheme_attrs(scheme):
 class install(Command):
     description = "install everything from build directory"
 
-    user_options = [
+    user_options: ClassVar = [
         # Select installation scheme and set base director(y|ies)
         ('prefix=', None, "installation prefix"),
         ('exec-prefix=', None, "(Unix only) prefix for platform-specific files"),
@@ -218,8 +219,10 @@ class install(Command):
         (
             'optimize=',
             'O',
-            "also compile with optimization: -O1 for \"python -O\", "
-            "-O2 for \"python -OO\", and -O0 to disable [default: -O0]",
+            (
+                "also compile with optimization: -O1 for \"python -O\", "
+                "-O2 for \"python -OO\", and -O0 to disable [default: -O0]"
+            ),
         ),
         # Miscellaneous control options
         ('force', 'f', "force installation (overwrite any existing files)"),
@@ -232,7 +235,7 @@ class install(Command):
         ('record=', None, "filename in which to record list of installed files"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['compile', 'force', 'skip-build']
+    boolean_options: ClassVar = ['compile', 'force', 'skip-build']
 
     if HAS_USER_SITE:
         user_options.append((
@@ -242,7 +245,7 @@ class install(Command):
         ))
         boolean_options.append('user')
 
-    negative_opt: ClassVar[dict[str, str]] = {'no-compile': 'compile'}
+    negative_opt: ClassVar = {'no-compile': 'compile'}
 
     def initialize_options(self) -> None:
         """Initializes options."""
@@ -256,20 +259,20 @@ class install(Command):
         # These select only the installation base; it's up to the user to
         # specify the installation scheme (currently, that means supplying
         # the --install-{platlib,purelib,scripts,data} options).
-        self.install_base = None
-        self.install_platbase = None
+        self.install_base: str | None = None
+        self.install_platbase: str | None = None
         self.root: str | None = None
 
         # These options are the actual installation directories; if not
         # supplied by the user, they are filled in using the installation
         # scheme implied by prefix/exec-prefix/home and the contents of
         # that installation scheme.
-        self.install_purelib = None  # for pure module distributions
-        self.install_platlib = None  # non-pure (dists w/ extensions)
-        self.install_headers = None  # for C/C++ headers
+        self.install_purelib: str | None = None  # for pure module distributions
+        self.install_platlib: str | None = None  # non-pure (dists w/ extensions)
+        self.install_headers: str | None = None  # for C/C++ headers
         self.install_lib: str | None = None  # set to either purelib or platlib
-        self.install_scripts = None
-        self.install_data = None
+        self.install_scripts: str | None = None
+        self.install_data: str | None = None
         self.install_userbase = USER_BASE
         self.install_usersite = USER_SITE
 
@@ -362,10 +365,9 @@ class install(Command):
             )
 
         # Next, stuff that's wrong (or dubious) only on certain platforms.
-        if os.name != "posix":
-            if self.exec_prefix:
-                self.warn("exec-prefix option ignored on this platform")
-                self.exec_prefix = None
+        if os.name != "posix" and self.exec_prefix:
+            self.warn("exec-prefix option ignored on this platform")
+            self.exec_prefix = None
 
         # Now the interesting logic -- so interesting that we farm it out
         # to other methods.  The goal of these methods is to set the final
@@ -772,31 +774,31 @@ class install(Command):
 
     # -- Predicates for sub-command list -------------------------------
 
-    def has_lib(self):
+    def has_lib(self) -> bool:
         """Returns true if the current distribution has any Python
         modules to install."""
         return (
             self.distribution.has_pure_modules() or self.distribution.has_ext_modules()
         )
 
-    def has_headers(self):
+    def has_headers(self) -> bool:
         """Returns true if the current distribution has any headers to
         install."""
         return self.distribution.has_headers()
 
-    def has_scripts(self):
+    def has_scripts(self) -> bool:
         """Returns true if the current distribution has any scripts to.
         install."""
         return self.distribution.has_scripts()
 
-    def has_data(self):
+    def has_data(self) -> bool:
         """Returns true if the current distribution has any data to.
         install."""
         return self.distribution.has_data_files()
 
     # 'sub_commands': a list of commands this command might have to run to
     # get its work done.  See cmd.py for more info.
-    sub_commands = [
+    sub_commands: ClassVar[list[tuple[str, Callable[[Any], bool] | None]]] = [
         ('install_lib', has_lib),
         ('install_headers', has_headers),
         ('install_scripts', has_scripts),

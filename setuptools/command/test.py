@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import NoReturn
+from typing import ClassVar, NoReturn
 
 from setuptools import Command
 from setuptools.warnings import SetuptoolsDeprecationWarning
@@ -27,7 +27,9 @@ class _test(Command):
 
     description = "stub for old test command (do not use)"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('test-module=', 'm', "Run 'test_suite' in specified module"),
         (
             'test-suite=',

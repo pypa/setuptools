@@ -200,7 +200,7 @@ class FileList:
     @overload
     def include_pattern(
         self,
-        pattern: str,
+        pattern: str | None,
         anchor: bool = True,
         prefix: str | None = None,
         is_regex: Literal[False] = False,
@@ -224,7 +224,7 @@ class FileList:
     ) -> bool: ...
     def include_pattern(
         self,
-        pattern: str | re.Pattern,
+        pattern: str | re.Pattern | None,
         anchor: bool = True,
         prefix: str | None = None,
         is_regex: bool = False,
@@ -261,6 +261,7 @@ class FileList:
         # delayed loading of allfiles list
         if self.allfiles is None:
             self.findall()
+        assert self.allfiles is not None
 
         for name in self.allfiles:
             if pattern_re.search(name):
@@ -272,7 +273,7 @@ class FileList:
     @overload
     def exclude_pattern(
         self,
-        pattern: str,
+        pattern: str | None,
         anchor: bool = True,
         prefix: str | None = None,
         is_regex: Literal[False] = False,
@@ -296,7 +297,7 @@ class FileList:
     ) -> bool: ...
     def exclude_pattern(
         self,
-        pattern: str | re.Pattern,
+        pattern: str | re.Pattern | None,
         anchor: bool = True,
         prefix: str | None = None,
         is_regex: bool = False,
@@ -345,7 +346,7 @@ class _UniqueDirs(set):
         if the item represents a unique dir for this instance
         and if not, prevent further traversal.
         """
-        base, dirs, files = walk_item
+        base, dirs, _files = walk_item
         stat = os.stat(base)
         candidate = stat.st_dev, stat.st_ino
         found = candidate in self

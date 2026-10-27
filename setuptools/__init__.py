@@ -31,14 +31,14 @@ from .warnings import SetuptoolsDeprecationWarning
 import distutils.core
 
 __all__ = [
-    'setup',
-    'Distribution',
     'Command',
+    'Distribution',
     'Extension',
     'Require',
     'SetuptoolsDeprecationWarning',
-    'find_packages',
     'find_namespace_packages',
+    'find_packages',
+    'setup',
 ]
 
 _CommandT = TypeVar("_CommandT", bound="_Command")
@@ -69,7 +69,7 @@ def _install_setup_requires(attrs):
             """Ignore ``pyproject.toml``, they are not related to setup_requires"""
             try:
                 cfg, _toml = super()._split_standard_project_metadata(filenames)
-            except Exception:
+            except Exception:  # noqa: BLE001 # intentional broad fallback
                 return filenames, ()
             return cfg, ()
 
@@ -166,6 +166,12 @@ class Command(_Command):
 
     command_consumes_arguments = False
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
+
+    dry_run = False  # type: ignore[assignment] # pyright: ignore[reportAssignmentType] (until #4689; see #4872)
+    """
+    For compatibility with vendored bdist_wheel.
+    https://github.com/pypa/setuptools/pull/4872/files#r1986395142
+    """
 
     def __init__(self, dist: Distribution, **kw) -> None:
         """

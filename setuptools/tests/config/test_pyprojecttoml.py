@@ -1,6 +1,7 @@
 import re
 from configparser import ConfigParser
 from inspect import cleandoc
+from typing import ClassVar
 
 import jaraco.path
 import pytest
@@ -284,6 +285,29 @@ class TestClassifiers:
         with pytest.warns(UserWarning, match="File .*classifiers.txt. cannot be found"):
             expanded = read_configuration(pyproject)
         assert "classifiers" not in expanded["project"]
+
+
+class TestImportNames:
+    EXAMPLES: ClassVar[list] = [
+        'import-names = ["hello", "world"]',
+        'import-namespaces = ["hello", "world"]',
+        'dynamic = ["import-names"]',
+        'dynamic = ["import-namespaces"]',
+    ]
+
+    @pytest.mark.parametrize("example", EXAMPLES)
+    def test_not_implemented(self, monkeypatch, tmp_path, example):
+        monkeypatch.chdir(tmp_path)
+        pyproject = Path("pyproject.toml")
+        toml_config = f"""
+        [project]
+        name = 'proj'
+        version = '42'
+        {example}
+        """
+        pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
+        with pytest.raises(NotImplementedError, match='import-names'):
+            apply_configuration(Distribution({}), pyproject)
 
 
 @pytest.mark.parametrize(
