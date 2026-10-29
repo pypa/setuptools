@@ -751,6 +751,7 @@ class TestStaticConfig:
         dependencies = ["hello"]
         keywords = ["world"]
         classifiers = ["private :: hello world"]
+        license-files = ["LICENSE.txt"]
         [tool.setuptools]
         obsoletes = ["abcd"]
         provides = ["abcd"]
@@ -758,6 +759,7 @@ class TestStaticConfig:
         """
         pyproject = Path(tmp_path, "pyproject.toml")
         pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
+        (tmp_path / "LICENSE.txt").write_text("license", encoding="utf-8")
         dist = pyprojecttoml.apply_configuration(Distribution({}), pyproject)
         assert is_static(dist.install_requires)
         assert is_static(dist.metadata.keywords)
@@ -765,6 +767,7 @@ class TestStaticConfig:
         assert is_static(dist.metadata.obsoletes)
         assert is_static(dist.metadata.provides)
         assert is_static(dist.metadata.platforms)
+        assert is_static(dist.metadata.license_files)
 
 
 # --- Auxiliary Functions ---

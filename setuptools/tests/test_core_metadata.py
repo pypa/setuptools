@@ -18,6 +18,7 @@ from packaging.metadata import Metadata
 
 from setuptools import sic
 from setuptools._core_metadata import rfc822_escape, rfc822_unescape
+from setuptools._static import is_static
 from setuptools.config import expand, setupcfg
 from setuptools.dist import Distribution
 
@@ -489,31 +490,19 @@ class TestPEP643:
         metadata = _get_metadata(dist)
         assert set(metadata.get_all("Dynamic")) == set(fields)
 
-    @pytest.mark.parametrize(
-        "extra_toml",
-        [
-            "# Let setuptools autofill license-files",
-            "license-files = ['LICENSE*', 'AUTHORS*', 'NOTICE']",
-        ],
-    )
-    def test_license_files_dynamic(self, extra_toml, tmpdir_cwd):
-        # For simplicity (and for the time being) setuptools is not making
-        # any special handling to guarantee `License-File` is considered static.
-        # Instead we rely in the fact that, although suboptimal, it is OK to have
-        # it as dynamics, as per:
-        # https://github.com/pypa/setuptools/issues/4629#issuecomment-2331233677
+    def test_license_files_without_static_config_marked_dynamic(self, tmpdir_cwd):
+        # When license-files is omitted, setuptools discovers files with default
+        # globs. That discovery is not a static config, so License-File remains Dynamic.
         files = {
             "pyproject.toml": self.STATIC_CONFIG["pyproject.toml"].replace(
                 'license = "AGPL-3.0-or-later"',
-                f"dynamic = ['license']\n{extra_toml}",
+                "dynamic = ['license']",
             ),
             "LICENSE.md": "--- mock license ---",
             "NOTICE": "--- mock notice ---",
             "AUTHORS.txt": "--- me ---",
         }
-        # Sanity checks:
-        assert extra_toml in files["pyproject.toml"]
-        assert 'license = "AGPL-3.0-or-later"' not in extra_toml
+        assert 'license = "AGPL-3.0-or-later"' not in files["pyproject.toml"]
 
         jaraco.path.build(files)
         dist = _makedist(license_expression="AGPL-3.0-or-later")
@@ -528,6 +517,40 @@ class TestPEP643:
             "AUTHORS.txt",
             "LICENSE.md",
         }
+
+    @pytest.mark.parametrize(
+        ("license_files_toml", "expected_files"),
+        [
+            ('license-files = ["LICENSE"]', {"LICENSE"}),
+            (
+                "license-files = ['LICENSE*', 'AUTHORS*', 'NOTICE']",
+                {"LICENSE", "LICENSE.md", "AUTHORS.txt", "NOTICE"},
+            ),
+        ],
+    )
+    def test_static_license_files_not_marked_dynamic(
+        self, license_files_toml, expected_files, tmpdir_cwd
+    ):
+        files = {
+            "pyproject.toml": self.STATIC_CONFIG["pyproject.toml"].replace(
+                'license = "AGPL-3.0-or-later"',
+                f"dynamic = ['license']\n{license_files_toml}",
+            ),
+            "LICENSE": "--- mock license ---",
+            "LICENSE.md": "--- mock license ---",
+            "NOTICE": "--- mock notice ---",
+            "AUTHORS.txt": "--- me ---",
+        }
+        assert license_files_toml in files["pyproject.toml"]
+        assert 'license = "AGPL-3.0-or-later"' not in files["pyproject.toml"]
+
+        jaraco.path.build(files)
+        dist = _makedist(license_expression="AGPL-3.0-or-later")
+        metadata = _get_metadata(dist)
+        assert is_static(dist.metadata.license_files)
+        assert metadata.get_all("Dynamic") == ["license-expression"]
+        assert metadata.get("License-Expression") == "AGPL-3.0-or-later"
+        assert set(metadata.get_all("License-File")) == expected_files
 
 
 def _makedist(**attrs):

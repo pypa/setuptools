@@ -447,7 +447,7 @@ class Distribution(_Distribution):
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
         license_files: list[str] | None = self.metadata.license_files
-        patterns = license_files or []
+        patterns = list(license_files or [])
 
         license_file: str | None = self.metadata.license_file
         if license_file and license_file not in patterns:
@@ -462,7 +462,9 @@ class Distribution(_Distribution):
         else:  # Patterns explicitly given by the user
             files = self._expand_patterns(patterns, enforce_match=True)
 
-        self.metadata.license_files = list(unique_everseen(files))
+        # Preserve the "static"-ness of values parsed from config files
+        list_ = _static.List if _static.is_static(license_files) else list
+        self.metadata.license_files = list_(unique_everseen(files))
 
     @classmethod
     def _expand_patterns(
