@@ -626,47 +626,23 @@ class Distribution(_Distribution):
         if "-" not in opt or self._skip_setupcfg_normalization(section):
             return opt
 
-        underscore_opt = opt.replace('-', '_')
-        affected = f"(Affected: {self.metadata.name})." if self.metadata.name else ""
-        SetuptoolsDeprecationWarning.emit(
+        raise InvalidConfigError(
             f"Invalid dash-separated key {opt!r} in {section!r} (setup.cfg), "
-            f"please use the underscore name {underscore_opt!r} instead.",
-            f"""
-            Usage of dash-separated {opt!r} will not be supported in future
-            versions. Please use the underscore name {underscore_opt!r} instead.
-            {affected}
-
-            Available configuration options are listed in:
-            https://setuptools.pypa.io/en/latest/userguide/declarative_config.html
-            """,
-            see_url="https://github.com/pypa/setuptools/discussions/5011",
-            due_date=(2026, 3, 3),
+            f"please use the underscore name {opt.replace('-', '_')!r} instead. "
+            "See https://github.com/pypa/setuptools/discussions/5011 for details."
             # Warning initially introduced in 3 Mar 2021
         )
-        return underscore_opt
 
     def _enforce_option_lowercase(self, opt: str, section: str) -> str:
         if opt.islower() or self._skip_setupcfg_normalization(section):
             return opt
 
-        lowercase_opt = opt.lower()
-        affected = f"(Affected: {self.metadata.name})." if self.metadata.name else ""
-        SetuptoolsDeprecationWarning.emit(
+        raise InvalidConfigError(
             f"Invalid uppercase key {opt!r} in {section!r} (setup.cfg), "
-            f"please use lowercase {lowercase_opt!r} instead.",
-            f"""
-            Usage of uppercase key {opt!r} in {section!r} will not be supported in
-            future versions. Please use lowercase {lowercase_opt!r} instead.
-            {affected}
-
-            Available configuration options are listed in:
-            https://setuptools.pypa.io/en/latest/userguide/declarative_config.html
-            """,
-            see_url="https://github.com/pypa/setuptools/discussions/5011",
-            due_date=(2026, 3, 3),
+            f"please use lowercase {opt.lower()!r} instead. "
+            "See https://github.com/pypa/setuptools/discussions/5011 for details."
             # Warning initially introduced in 6 Mar 2021
         )
-        return lowercase_opt
 
     def _skip_setupcfg_normalization(self, section: str) -> bool:
         skip = (
