@@ -2,13 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator
 from functools import lru_cache
-from typing import TYPE_CHECKING, TypeVar, overload
+from typing import TypeAlias, TypeVar, overload
 
 from jaraco import text
 from packaging.requirements import Requirement
-
-if TYPE_CHECKING:
-    from typing import TypeAlias
 
 _T = TypeVar("_T")
 _StrOrIter: TypeAlias = str | Iterable[str]

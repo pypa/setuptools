@@ -39,7 +39,7 @@ import tokenize
 import warnings
 from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING, NoReturn
+from typing import NoReturn, TypeAlias
 
 import setuptools
 
@@ -50,9 +50,6 @@ from .warnings import SetuptoolsDeprecationWarning
 
 import distutils
 from distutils.util import strtobool
-
-if TYPE_CHECKING:
-    from typing import TypeAlias
 
 __all__ = [
     'SetupRequirementsError',
