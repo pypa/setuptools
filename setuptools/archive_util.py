@@ -195,7 +195,10 @@ def _resolve_tar_file_or_dir(tar_obj, tar_member_obj):
             base = posixpath.dirname(tar_member_obj.name)
             linkpath = posixpath.join(base, linkpath)
             linkpath = posixpath.normpath(linkpath)
-        tar_member_obj = tar_obj._getmember(linkpath)
+        # exact-name lookup, last occurrence wins; public API equivalent of
+        # the private TarFile._getmember(linkpath) (which lacks that guarantee)
+        matches = [m for m in tar_obj.getmembers() if m.name == linkpath]
+        tar_member_obj = matches[-1] if matches else None
 
     is_file_or_dir = tar_member_obj is not None and (
         tar_member_obj.isfile() or tar_member_obj.isdir()
@@ -206,10 +209,33 @@ def _resolve_tar_file_or_dir(tar_obj, tar_member_obj):
     raise LookupError('Got unknown file type')
 
 
+#: The PEP 706 "data" extraction filter, present on Python 3.12+ and on the
+#: 3.10.12+/3.11.4+ security backports. On earlier micro releases it is
+#: absent and extraction falls back to the legacy behavior.
+_DATA_FILTER = getattr(tarfile, 'data_filter', None)
+
+#: Filter errors meaning "this member would land outside of the destination".
+#: They are raised in place of the ``UnsafeMember`` that ``_resolve_dest``
+#: used to raise, so callers catching ``UnsafeMember``/``DistutilsError``
+#: would otherwise miss the abort. Empty on interpreters without the filter,
+#: where the filtering branch is never taken.
+_OUTSIDE_DEST_ERRORS = tuple(
+    err
+    for err in (
+        getattr(tarfile, 'OutsideDestinationError', None),
+        getattr(tarfile, 'AbsolutePathError', None),
+    )
+    if err is not None
+)
+
+
 def _iter_open_tar(tar_obj, extract_dir, progress_filter):
     """Emit member-destination pairs from a tar archive."""
-    # don't do any chowning!
-    tar_obj.chown = lambda *args: None
+    if _DATA_FILTER is None:
+        # Without the PEP 706 filter, ownership supplied by the archive
+        # would be applied verbatim, so suppress it manually.
+        # don't do any chowning!
+        tar_obj.chown = lambda *args: None
 
     with contextlib.closing(tar_obj):
         for member in tar_obj:
@@ -220,6 +246,20 @@ def _iter_open_tar(tar_obj, extract_dir, progress_filter):
                 member = _resolve_tar_file_or_dir(tar_obj, member)
             except LookupError:
                 continue
+
+            if _DATA_FILTER is not None:
+                # PEP 706: vet the member against the extraction directory
+                # and take its sanitized copy (high mode bits stripped,
+                # ownership cleared, special files rejected) before the
+                # member is written anywhere.
+                try:
+                    member = _DATA_FILTER(member, extract_dir)
+                except _OUTSIDE_DEST_ERRORS as exc:
+                    # A link resolving to a member whose own name escapes the
+                    # destination: report it the way the pre-filter code did,
+                    # so callers catching UnsafeMember (a DistutilsError)
+                    # still see the abort rather than a tarfile error.
+                    raise UnsafeMember(str(exc)) from exc
 
             final_dst = progress_filter(name, prelim_dst)
             if not final_dst:
