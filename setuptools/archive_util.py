@@ -182,7 +182,8 @@ def _unpack_zipfile_obj(zipfile_obj, extract_dir, progress_filter=default_filter
                 f.write(data)
         unix_attributes = info.external_attr >> 16
         if unix_attributes:
-            os.chmod(target, unix_attributes)
+            # honor the permission bits, but never setuid, setgid or sticky
+            os.chmod(target, unix_attributes & 0o777)
 
 
 def _resolve_tar_file_or_dir(tar_obj, tar_member_obj):
