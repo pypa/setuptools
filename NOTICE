@@ -1,0 +1,11 @@
+This project includes source code from other open-source projects to facilitate
+bootstrapping.
+
+The license information for those projects is distributed by setuptools under
+the directories:
+
+    setuptools/_vendor/*.dist-info/
+    setuptools/_vendor/*.dist-info/licenses/
+
+Please refer to the files in these directories for the complete license texts
+and attribution details of the included third-party components.
