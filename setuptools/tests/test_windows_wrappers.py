@@ -17,10 +17,9 @@ import platform
 import subprocess
 import sys
 import textwrap
+from importlib import resources
 
 import pytest
-
-from setuptools._importlib import resources
 
 pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
 
