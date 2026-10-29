@@ -305,6 +305,11 @@ class Distribution(_Distribution):
         if not have_package_data:
             self.package_data: dict[str, list[str]] = {}
         attrs = attrs or {}
+        if "requires" in attrs:
+            raise DistutilsSetupError(
+                "The 'requires' keyword is not supported by setuptools; "
+                "use 'install_requires' instead."
+            )
         self.dist_files: list[tuple[str, str, str]] = []
         self.include_package_data: bool | None = None
         self.exclude_package_data: dict[str, list[str]] | None = None

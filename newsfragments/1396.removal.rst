@@ -1,0 +1,2 @@
+The legacy ``requires`` keyword in ``setup()`` was rejected. Use
+``install_requires`` instead.

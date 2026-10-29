@@ -153,6 +153,17 @@ def test_check_specifier():
         dist = Distribution(attrs)
 
 
+def test_requires_is_not_supported():
+    with pytest.raises(
+        DistutilsSetupError,
+        match=re.escape(
+            "The 'requires' keyword is not supported by setuptools; "
+            "use 'install_requires' instead."
+        ),
+    ):
+        Distribution({'name': 'foo', 'requires': ['six']})
+
+
 def test_metadata_name():
     with pytest.raises(DistutilsSetupError, match='missing.*name'):
         Distribution()._validate_metadata()
