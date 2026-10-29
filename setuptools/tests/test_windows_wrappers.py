@@ -12,8 +12,10 @@ the script they are to wrap and with the same name as the script they
 are to wrap.
 """
 
+import os
 import pathlib
 import platform
+import shutil
 import subprocess
 import sys
 import textwrap
@@ -256,3 +258,88 @@ class TestGUI(WrapperTester):
         with (tmpdir / 'test_output.txt').open('rb') as f_out:
             actual = f_out.read().decode('ascii')
         assert actual == repr('Test Argument')
+
+
+@pytest.fixture(scope='module')
+def source_launcher(tmp_path_factory):  # pragma: no cover
+    repo_root = pathlib.Path(__file__).parents[2]
+    build_dir = tmp_path_factory.mktemp('launcher-build')
+    if platform.machine() == 'ARM64':
+        cmake_architecture, runtime_architecture = 'ARM64', 'arm64'
+    elif sys.maxsize <= 2**32:
+        cmake_architecture, runtime_architecture = 'Win32', 'x86'
+    else:
+        cmake_architecture, runtime_architecture = 'x64', 'x64'
+    subprocess.run(
+        [
+            'cmake',
+            '-S',
+            str(repo_root / 'launcher'),
+            '-B',
+            str(build_dir),
+            '-A',
+            cmake_architecture,
+            '-DGUI=0',
+            '-DCMAKE_C_FLAGS_RELEASE=/O1 /fsanitize=address',
+        ],
+        check=True,
+    )
+    subprocess.run(
+        ['cmake', '--build', str(build_dir), '--config', 'Release'],
+        check=True,
+    )
+    vswhere = (
+        pathlib.Path(os.environ['ProgramFiles(x86)'])
+        / 'Microsoft Visual Studio'
+        / 'Installer'
+        / 'vswhere.exe'
+    )
+    installation = pathlib.Path(
+        subprocess.check_output(
+            [
+                vswhere,
+                '-latest',
+                '-products',
+                '*',
+                '-property',
+                'installationPath',
+            ],
+            text=True,
+            encoding='utf-8',
+        ).strip()
+    )
+    toolset = (
+        (
+            installation
+            / 'VC'
+            / 'Auxiliary'
+            / 'Build'
+            / 'Microsoft.VCToolsVersion.default.txt'
+        )
+        .read_text(encoding='utf-8')
+        .strip()
+    )
+    runtime_by_name = {
+        path.name: path
+        for path in (installation / 'VC' / 'Tools' / 'MSVC' / toolset / 'bin').glob(
+            f'Host*/{runtime_architecture}/clang_rt.asan_dynamic-*.dll'
+        )
+    }
+    assert len(runtime_by_name) == 1
+    runtime = next(iter(runtime_by_name.values()))
+    return build_dir / 'Release' / 'launcher.exe', runtime
+
+
+def test_maximum_shebang_stays_within_buffer(  # pragma: no cover
+    tmp_path, source_launcher
+):
+    launcher, sanitizer_runtime = source_launcher
+    wrapper = tmp_path / 'foo.exe'
+    shutil.copyfile(launcher, wrapper)
+    shutil.copyfile(sanitizer_runtime, tmp_path / sanitizer_runtime.name)
+
+    shebang = f'#!{subprocess.list2cmdline([sys.executable])}'.encode()
+    assert len(shebang) <= 256
+    (tmp_path / 'foo-script.py').write_bytes(shebang.ljust(256, b' '))
+
+    subprocess.run([wrapper], check=True, timeout=30)
