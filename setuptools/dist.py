@@ -285,15 +285,20 @@ class Distribution(_Distribution):
     the distribution.
     """
 
+    # The container defaults below are :class:`_static.Static` so that an omitted
+    # value stays distinguishable from one the author set to an empty container.
+    # Only these three default to something falsy rather than ``None``, which is
+    # what the ``Dynamic`` loop in ``_core_metadata`` relies on to tell
+    # "absent" from "empty".
     _DISTUTILS_UNSUPPORTED_METADATA: ClassVar[dict] = {
         'long_description_content_type': lambda: None,
-        'project_urls': dict,
+        'project_urls': _static.Dict,
         'provides_extras': dict,  # behaves like an ordered set
         'license_expression': lambda: None,
         'license_file': lambda: None,
         'license_files': lambda: None,
-        'install_requires': list,
-        'extras_require': dict,
+        'install_requires': _static.List,
+        'extras_require': _static.Dict,
     }
 
     # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
@@ -392,8 +397,18 @@ class Distribution(_Distribution):
 
     def _normalize_requires(self):
         """Make sure requirement-related attributes exist and are normalized"""
-        install_requires = getattr(self, "install_requires", None) or []
-        extras_require = getattr(self, "extras_require", None) or {}
+        # Do not collapse with `or`: an empty Static default is falsy, and replacing
+        # it with a plain container would lose the fact that it was never set.
+        install_requires = getattr(self, "install_requires", None)
+        extras_require = getattr(self, "extras_require", None)
+        # An absent value falls back to a *static* empty container, matching the
+        # default in `_DISTUTILS_UNSUPPORTED_METADATA`; `_finalize_requires` copies
+        # whatever lands here onto `self.metadata`, so a plain one would overwrite
+        # that default and make an omitted value look explicitly empty.
+        if install_requires is None:
+            install_requires = _static.List()
+        if extras_require is None:
+            extras_require = _static.Dict()
 
         # Preserve the "static"-ness of values parsed from config files
         list_ = _static.List if _static.is_static(install_requires) else list
@@ -462,7 +477,10 @@ class Distribution(_Distribution):
         else:  # Patterns explicitly given by the user
             files = self._expand_patterns(patterns, enforce_match=True)
 
-        self.metadata.license_files = list(unique_everseen(files))
+        found = list(unique_everseen(files))
+        # An empty result means no license file was found, which is not the same as
+        # the author declaring an empty list, so keep it static and out of Dynamic.
+        self.metadata.license_files = found or _static.List()
 
     @classmethod
     def _expand_patterns(

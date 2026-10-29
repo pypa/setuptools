@@ -1,0 +1,5 @@
+An empty ``install_requires``, ``extras_require`` or ``project_urls`` passed to
+``setup()`` is now reported as ``Dynamic`` in the core metadata. Previously an empty
+value was indistinguishable from an omitted one, so a project that declared its
+dependencies empty up front and filled them in later lost ``Dynamic: Requires-Dist``.
+Omitting the value entirely is unchanged and still produces no ``Dynamic`` entry.
