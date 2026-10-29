@@ -1,0 +1,1 @@
+Wheel builds now raise an error when a license file matched by ``license-files`` patterns (including the default globs) is not valid UTF-8 encoded text, per the PEP 639 recommendation -- by :user:`CAOShurong`
