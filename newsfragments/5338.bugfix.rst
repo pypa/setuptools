@@ -1,0 +1,2 @@
+Stopped duplicating part of the version when sanitizing an unparseable version
+that starts with a ``v`` prefix.
