@@ -1,3 +1,5 @@
+__lazy_modules__ = {"platform"}
+
 import platform
 
 

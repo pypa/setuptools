@@ -1,5 +1,22 @@
 """Wheels support."""
 
+__lazy_modules__ = {
+    "collections.abc",
+    "distutils.util",
+    "email",
+    "itertools",
+    "packaging.requirements",
+    "packaging.tags",
+    "packaging.utils",
+    "packaging.version",
+    "setuptools.archive_util",
+    "setuptools.command.egg_info",
+    "zipfile",
+    f"{__spec__.parent}._discovery",
+    f"{__spec__.parent}._importlib",
+    f"{__spec__.parent}.unicode_utils",
+}
+
 import contextlib
 import email
 import functools
@@ -20,7 +37,7 @@ from setuptools.archive_util import _unpack_zipfile_obj
 from setuptools.command.egg_info import _egg_basename, write_requirements
 
 from ._discovery import extras_from_deps
-from ._importlib import metadata
+from ._importlib import metadata  # noqa: LZY102
 from .unicode_utils import _read_utf8_with_fallback
 
 from distutils.util import get_platform

@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections.abc",
+    "distutils.errors",
+    "distutils.extension",
+    "functools",
+    "re",
+    "setuptools._path",
+}
+
 import functools
 import re
 from collections.abc import Iterable

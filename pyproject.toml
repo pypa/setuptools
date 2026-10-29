@@ -116,6 +116,7 @@ check = [
 
 	# Deprecated rules must now be selected by exact rule code
 	"ruff >= 0.13.0; sys_platform != 'cygwin'",
+	"flake8-lazy", # Until Ruff gains support for automatically inserting and validating __lazy_modules__
 ]
 
 cover = [

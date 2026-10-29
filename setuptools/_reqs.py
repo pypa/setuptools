@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"jaraco"}
+
 from collections.abc import Callable, Iterable, Iterator
 from functools import lru_cache
 from typing import TYPE_CHECKING, TypeVar, overload

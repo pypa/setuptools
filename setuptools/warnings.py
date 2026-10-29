@@ -7,6 +7,8 @@ setuptools.
 
 from __future__ import annotations
 
+__lazy_modules__ = {"datetime", "inspect", "textwrap", "warnings"}
+
 import os
 import warnings
 from datetime import date
