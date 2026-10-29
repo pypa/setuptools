@@ -1,0 +1,5 @@
+``setuptools.Extension`` is hashable again. The dataclass conversion
+introduced in 84.0.0 generated ``__eq__`` and therefore set ``__hash__``
+to ``None``, which broke setup scripts that collect extensions in sets or
+use them as dict keys. ``Extension`` now keeps its historical
+identity-based equality and hash -- see #5303.

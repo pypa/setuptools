@@ -121,6 +121,28 @@ class TestExtension:
 
         assert len(w) == 1
 
+    def test_extension_is_hashable(self):
+        # Regression for #5303: ``Extension`` must stay hashable so setup
+        # scripts can collect extensions in sets or use them as dict keys.
+        # Before the dataclass conversion it used identity-based equality
+        # and hash; restoring ``eq=False`` keeps that behaviour instead of
+        # generating ``__eq__`` (which would set ``__hash__`` to ``None``).
+        ext = Extension('x', ['y.c'])
+        assert hash(ext) == hash(ext)  # hashable, no TypeError
+
+        # Distinct instances compare by identity, not by equal field values.
+        other = Extension('x', ['y.c'])
+        assert ext is not other
+        assert ext != other
+
+    def test_extension_hash_survives_set_membership(self):
+        # A collection that genuinely relies on hashability must keep working.
+        ext = Extension('x', ['y.c'])
+        ext_set = {ext}
+        assert ext in ext_set
+        ext_set.discard(ext)
+        assert ext not in ext_set
+
 
 def test_can_be_extended_by_setuptools() -> None:
     # Emulate how it could be extended in setuptools
