@@ -58,7 +58,7 @@ def get_unpatched_class(cls: type[_T]) -> type[_T]:
     first.
     """
     external_bases = (
-        cast(type[_T], cls)
+        cast("type[_T]", cls)
         for cls in _get_mro(cls)
         if not cls.__module__.startswith('setuptools')
     )
