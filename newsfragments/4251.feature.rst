@@ -1,0 +1,1 @@
+Refactored egg_info.FileList._safe_path to support ``os.PathLike`` inputs.
