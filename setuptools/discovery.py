@@ -426,6 +426,7 @@ class ConfigDiscovery:
         self.dist.package_dir = package_dir  # persist eventual modifications
         self.dist.packages = PEP420PackageFinder.find(src_dir)
         self.dist.py_modules = ModuleFinder.find(src_dir)
+        self._exclude_script_modules()
         log.debug(f"discovered packages -- {self.dist.packages}")
         log.debug(f"discovered py_modules -- {self.dist.py_modules}")
         return True
@@ -452,9 +453,30 @@ class ConfigDiscovery:
 
     def _analyse_flat_modules(self) -> bool:
         self.dist.py_modules = FlatLayoutModuleFinder.find(self._root_dir)
+        self._exclude_script_modules()
         log.debug(f"discovered py_modules -- {self.dist.py_modules}")
         self._ensure_no_accidental_inclusion(self.dist.py_modules, "modules")
         return bool(self.dist.py_modules)
+
+    def _exclude_script_modules(self) -> None:
+        """Drop auto-discovered modules that are already listed in ``scripts``.
+
+        Otherwise a lone ``script.py`` given via ``scripts=["script.py"]`` is
+        also treated as a ``py_module`` and installed into both ``scripts`` and
+        ``purelib`` (#3851).
+        """
+        if not self.dist.py_modules:
+            return
+        skip = {
+            os.path.splitext(os.path.basename(script))[0]
+            for script in self.dist.scripts or ()
+            if os.path.splitext(script)[1] == ".py"
+        }
+        skip.discard("")
+        if skip:
+            self.dist.py_modules = [
+                name for name in self.dist.py_modules if name not in skip
+            ]
 
     def _ensure_no_accidental_inclusion(self, detected: list[str], kind: str):
         if len(detected) > 1:

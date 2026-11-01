@@ -235,6 +235,21 @@ class TestDiscoverPackagesAndPyModules:
         with pytest.raises(PackageDiscoveryError, match="multiple (packages|modules)"):
             _get_dist(tmp_path, {})
 
+    def test_scripts_not_auto_discovered_as_py_modules(self, tmp_path):
+        """A file listed in ``scripts`` must not also become a py_module (#3851)."""
+        files = ["script.py"]
+        options = {"scripts": ["script.py"]}
+        _populate_project_dir(tmp_path, files, options)
+        dist = _get_dist(tmp_path, options)
+        assert "script" not in (dist.py_modules or [])
+
+    def test_scripts_do_not_hide_other_discovered_modules(self, tmp_path):
+        files = ["pkg.py", "script.py"]
+        options = {"scripts": ["script.py"]}
+        _populate_project_dir(tmp_path, files, options)
+        dist = _get_dist(tmp_path, options)
+        assert set(dist.py_modules or []) == {"pkg"}
+
     def test_py_modules_when_wheel_dir_is_cwd(self, tmp_path):
         """Regression for issue 3692"""
         from setuptools import build_meta

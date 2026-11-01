@@ -1,0 +1,1 @@
+Files listed in ``scripts`` are no longer also auto-discovered as ``py_modules``, so a single-script project is no longer installed into both ``scripts`` and ``purelib``.
