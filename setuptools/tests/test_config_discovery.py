@@ -77,7 +77,7 @@ class TestDiscoverPackagesAndPyModules:
         files, options = self._get_info(circumstance)
         _populate_project_dir(tmp_path, files, options)
 
-        _, cmd = _run_sdist_programatically(tmp_path, options)
+        _, cmd = _run_sdist_programmatically(tmp_path, options)
 
         manifest = [f.replace(os.sep, "/") for f in cmd.filelist.files]
         for file in files:
@@ -629,7 +629,7 @@ def _get_dist(dist_path, attrs):
     return dist
 
 
-def _run_sdist_programatically(dist_path, attrs):
+def _run_sdist_programmatically(dist_path, attrs):
     dist = _get_dist(dist_path, attrs)
     cmd = sdist(dist)
     cmd.ensure_finalized()
