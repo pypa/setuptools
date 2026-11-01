@@ -5,6 +5,22 @@ Developer's Guide for Setuptools
 If you want to know more about contributing on Setuptools, this is the place.
 
 
+-----------------------
+Using the latest source
+-----------------------
+
+To work on the latest version from a checkout, create a virtual environment
+and install the checkout in editable mode::
+
+    $ python -m venv .venv
+    $ . .venv/bin/activate
+    $ python -m pip install --editable .
+
+The editable installation makes the working tree importable, so source changes
+are immediately available while you develop. Use a fresh virtual environment
+for each checkout to keep its dependencies isolated.
+
+
 -------------------
 Recommended Reading
 -------------------
