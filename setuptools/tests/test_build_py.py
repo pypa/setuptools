@@ -122,6 +122,39 @@ def test_executable_data(tmpdir_cwd):
     )
 
 
+@pytest.mark.xfail(
+    'platform.system() == "Windows"',
+    reason="On Windows, files do not have executable bits",
+    raises=AssertionError,
+    strict=True,
+)
+def test_executable_package_data_python_module(tmpdir_cwd):
+    """Executable bit is preserved for package_data even when the file is
+    also copied as a module (preserve_mode=False).
+
+    Regression test for #5296: nested ``.py`` package_data files were
+    first copied as modules without +x, then skipped as up-to-date.
+    """
+    dist = Distribution(
+        dict(
+            script_name='setup.py',
+            script_args=['build_py'],
+            packages=['pkg', 'pkg.scripts'],
+            package_data={'pkg': ['scripts/*']},
+        )
+    )
+    os.makedirs('pkg/scripts')
+    open('pkg/__init__.py', 'wb').close()
+    open('pkg/scripts/some_script.py', 'wb').close()
+    os.chmod('pkg/scripts/some_script.py', 0o755)
+
+    dist.parse_command_line()
+    dist.run_commands()
+
+    built = 'build/lib/pkg/scripts/some_script.py'
+    assert os.stat(built).st_mode & stat.S_IEXEC, "Script is not executable"
+
+
 EXAMPLE_WITH_MANIFEST = {
     "setup.cfg": DALS(
         """

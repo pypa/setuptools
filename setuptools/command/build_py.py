@@ -172,6 +172,11 @@ class build_py(orig.build_py):
         for target, srcfile in self._get_package_data_output_mapping():
             self.mkpath(os.path.dirname(target))
             _outf, _copied = self.copy_file(srcfile, target)
+            # copy_file may skip an up-to-date destination that was
+            # previously copied as a module with preserve_mode=False,
+            # dropping the executable bit. Always apply the source
+            # permission bits for package data, then make the copy writable.
+            os.chmod(target, stat.S_IMODE(os.stat(srcfile).st_mode))
             make_writable(target)
 
     def analyze_manifest(self) -> None:
