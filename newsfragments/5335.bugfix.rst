@@ -1,0 +1,4 @@
+It's now possible to import setuptools from a CPython source tree on Python
+3.12 and newer: enable _distutils_hack in this case. Previously, distutils was
+disabled and so importing setuptools failed with a ModuleNotFoundError on
+importing distutils.
