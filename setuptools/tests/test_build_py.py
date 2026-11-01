@@ -2,6 +2,7 @@ import os
 import shutil
 import stat
 import warnings
+import zipfile
 from pathlib import Path
 from typing import ClassVar
 from unittest.mock import Mock
@@ -119,6 +120,60 @@ def test_executable_data(tmpdir_cwd):
 
     assert os.stat('build/lib/pkg/run-me').st_mode & stat.S_IEXEC, (
         "Script is not executable"
+    )
+
+
+@pytest.mark.xfail(
+    'platform.system() == "Windows"',
+    reason="On Windows, files do not have executable bits",
+    raises=AssertionError,
+    strict=True,
+)
+def test_executable_py_package_data(tmpdir_cwd):
+    """
+    Ensure the executable bit is preserved on ``.py`` files declared as
+    package data in built wheels, even though the file is also picked up
+    as a module and copied without mode preservation.
+
+    #5296
+    """
+    from setuptools.build_meta import build_wheel
+
+    jaraco.path.build(
+        {
+            "pyproject.toml": DALS(
+                """
+                [build-system]
+                requires = ["setuptools"]
+                build-backend = "setuptools.build_meta"
+
+                [project]
+                name = "pkg"
+                version = "0.0.1"
+
+                [tool.setuptools.package-data]
+                pkg = ["scripts/*"]
+                """
+            ),
+            "pkg": {
+                "__init__.py": "",
+                "scripts": {"run-me.py": ""},
+            },
+        }
+    )
+    os.chmod('pkg/scripts/run-me.py', 0o700)
+
+    dist_dir = os.path.abspath('pip-wheel')
+    os.makedirs(dist_dir)
+    build_wheel(dist_dir)
+
+    wheel_file = next(
+        f for f in os.listdir(dist_dir) if f.endswith('.whl')
+    )
+    with zipfile.ZipFile(os.path.join(dist_dir, wheel_file)) as zf:
+        info = zf.getinfo('pkg/scripts/run-me.py')
+    assert stat.S_IMODE(info.external_attr >> 16) & stat.S_IEXEC, (
+        "Script is not executable in the wheel"
     )
 
 

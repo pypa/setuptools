@@ -1,0 +1,1 @@
+Fixed ``build_py`` dropping the executable bit on ``.py`` files included as package data in built wheels -- by :user:`aryansk`
