@@ -96,14 +96,15 @@ written in the setup script as ::
 
     package_dir = {'foo': 'lib'}
 
-A ``package: dir`` entry in the ``package_dir`` dictionary implicitly
-applies to all packages below *package*, so the ``foo.bar`` case is
-automatically handled here.  In this example, having ``packages = ['foo',
-'foo.bar']`` tells the Distutils to look for :file:`lib/__init__.py` and
-:file:`lib/bar/__init__.py`.  (Keep in mind that although ``package_dir``
-applies recursively, you must explicitly list all packages in
-``packages``: the Distutils will *not* recursively scan your source tree
-looking for any directory with an :file:`__init__.py` file.)
+A ``package: dir`` entry in the ``package_dir`` dictionary implicitly applies
+the directory mapping to all packages below *package*.  It does not add those
+packages to the distribution automatically.  In this example, having
+``packages = ['foo', 'foo.bar']`` tells the Distutils to look for
+:file:`lib/__init__.py` and :file:`lib/bar/__init__.py`; the directory for
+``foo.bar`` is derived from the mapping for ``foo``.  You must still explicitly
+list every package in ``packages``: the Distutils will *not* recursively scan
+your source tree looking for directories containing an :file:`__init__.py`
+file.
 
 
 .. _listing-modules:
