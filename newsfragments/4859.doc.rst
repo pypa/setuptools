@@ -1,0 +1,2 @@
+Linked the deprecated ``dependency_links`` documentation to the supported
+direct URL dependency syntax.

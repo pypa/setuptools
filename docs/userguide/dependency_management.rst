@@ -209,6 +209,8 @@ detailed in :pep:`508`.
    specific use cases where environment markers aren't sufficient.
 
 
+.. _direct-url-dependencies:
+
 Direct URL dependencies
 -----------------------
 
