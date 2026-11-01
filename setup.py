@@ -9,6 +9,8 @@ from setuptools.command.install import install
 here = os.path.dirname(__file__)
 
 
+import sys
+
 class install_with_pth(install):
     """
     Custom install command to install a .pth file for distutils patching.
@@ -39,7 +41,12 @@ class install_with_pth(install):
 
     def initialize_options(self):
         install.initialize_options(self)
-        self.extra_path = self._pth_name, self._pth_contents
+        # Disable the distutils shim on Python 3.6 to avoid SSL regressions
+        # (https://github.com/pypa/setuptools/issues/2728)
+        if sys.version_info < (3, 7):
+            self.extra_path = None
+        else:
+            self.extra_path = self._pth_name, self._pth_contents
 
     def finalize_options(self):
         install.finalize_options(self)
