@@ -678,8 +678,8 @@ if you are already using distutils configuration files to set default install
 locations, build options, etc., EasyInstall will respect your existing settings
 until and unless you override them explicitly in an ``[easy_install]`` section.
 
-For more information, see also the current Python documentation on the `use and
-location of distutils configuration files <https://docs.python.org/install/index.html#inst-config-files>`_.
+For more information, see also the distutils documentation on
+:doc:`the use and location of distutils configuration files <distutils/configfile>`.
 
 Notice that ``easy_install`` will use the ``setup.cfg`` from the current
 working directory only if it was triggered from ``setup.py`` through the
