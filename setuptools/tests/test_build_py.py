@@ -479,3 +479,69 @@ def get_outputs(build_py):
         os.path.relpath(x, build_dir).replace(os.sep, "/")
         for x in build_py.get_outputs()
     }
+
+
+def test_analyze_manifest_mixed_separators(tmpdir_cwd):
+    """
+    A subpackage source path written with forward slashes (the documented,
+    portable form for ``Extension`` sources) must not be misclassified as
+    package data of the parent package on Windows due to a separator mismatch
+    between manifest paths and package dirs.
+
+    Regression test for #5093.
+    """
+    jaraco.path.build({
+        "setup.cfg": DALS(
+            """
+                [metadata]
+                name = mypkg
+                version = 42
+
+                [options]
+                include_package_data = True
+                packages =
+                    mypkg
+                    mypkg.lib
+                """
+        ),
+        "mypkg": {
+            "__init__.py": "",
+            "lib": {"__init__.py": "", "say.pyx": "# dummy"},
+        },
+        "MANIFEST.in": DALS(
+            """
+                recursive-include mypkg *.pyx
+                prune dist
+                prune build
+                prune *.egg-info
+                """
+        ),
+    })
+    from setuptools.extension import Extension
+
+    dist = Distribution({"script_name": "%PEP 517%"})
+    dist.parse_config_files()
+    dist.ext_modules = [Extension("mypkg.lib.say", ["mypkg/lib/say.pyx"])]
+
+    egg_info = dist.get_command_obj("egg_info")
+    dist.run_command("egg_info")
+
+    build_py = dist.get_command_obj("build_py")
+    build_py.finalize_options()
+    build_py.existing_egg_info_dir = egg_info.egg_info
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        build_py.analyze_manifest()
+
+    offending = [
+        w
+        for w in caught
+        if issubclass(w.category, SetuptoolsDeprecationWarning)
+        and "mypkg.lib" in str(w.message)
+        and "absent" in str(w.message)
+    ]
+    assert not offending, (
+        "Subpackage whose extension source is written in Unix form was "
+        "misclassified as data of the parent package (mixed path separators)"
+    )
