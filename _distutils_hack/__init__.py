@@ -175,8 +175,12 @@ class DistutilsMetaFinder:
         """
         Return True if the indicated frame suggests a setup.py file.
         """
-        # some frames may not have __file__ (#2940)
-        return frame.f_globals.get('__file__', '').endswith('setup.py')
+        # some frames may not have __file__ (#2940);
+        # on Python 3.14+ __file__ may also be present but None, which would
+        # crash on the default-value fallback. Treat None and non-strings the
+        # same as missing. #5263
+        filename = frame.f_globals.get('__file__')
+        return isinstance(filename, str) and filename.endswith('setup.py')
 
     def spec_for_sensitive_tests(self):
         """

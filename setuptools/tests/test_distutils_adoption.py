@@ -86,6 +86,56 @@ def test_pip_import(venv):
     venv.run(cmd, **_TEXT_KWARGS)
 
 
+def test_pip_imported_during_build_tolerates_missing_or_none_file(tmp_path):
+    """
+    pip_imported_during_build must tolerate live frames whose globals
+    lack __file__ (see #2940) or carry __file__ set to None (namespace
+    packages set __file__ = None; also reported in the wild with #5263).
+    """
+    from _distutils_hack import DistutilsMetaFinder
+
+    # Real frame without __file__ in its globals: exec with a plain dict.
+    code_missing = "DistutilsMetaFinder.pip_imported_during_build()"
+    exec(  # noqa: S102 # exec is intentional here
+        compile(code_missing, "<pip-user-build-script>", "exec"),
+        {"DistutilsMetaFinder": DistutilsMetaFinder},
+    )
+
+    # Real frame with __file__ = None: a namespace package's module globals.
+    ns_dir = tmp_path / "nspkgs"
+    ns_dir.mkdir()
+    (ns_dir / "nspkg_for_test").mkdir()  # no __init__.py -> namespace package
+    sys_path = sys.path
+    sys_path.insert(0, str(ns_dir))
+    try:
+        import nspkg_for_test
+
+        assert nspkg_for_test.__file__ is None
+
+        # make the finder reachable from the exec'd namespace
+        nspkg_for_test.DistutilsMetaFinder = DistutilsMetaFinder
+
+        code_none = """
+        def level1():
+            def level2():
+                def level3():
+                    return DistutilsMetaFinder.pip_imported_during_build()
+                return level3()
+            return level2()
+        result = level1()
+        """
+        exec(  # noqa: S102 # exec is intentional here
+            compile(textwrap.dedent(code_none), "<pip-user-build-script>", "exec"),
+            nspkg_for_test.__dict__,
+        )
+
+        # no exception raised, and no setup.py frame was seen
+        assert nspkg_for_test.result is False
+    finally:
+        sys_path.remove(str(ns_dir))
+        sys.modules.pop("nspkg_for_test", None)
+
+
 def test_distutils_has_origin():
     """
     Distutils module spec should have an origin. #2990.
