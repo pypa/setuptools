@@ -214,6 +214,13 @@ In the ``dynamic`` table, the ``attr`` directive [#directives]_ will read an
 attribute from the given module [#attr]_, while ``file`` will read the contents
 of all given files and concatenate them in a single string.
 
+.. note::
+   Entries in the ``tool.setuptools.dynamic`` table are only used for the
+   fields that are also listed in ``project.dynamic``.
+   Any other entry is ignored and ``setuptools`` emits a warning,
+   since the corresponding metadata would otherwise be silently left out
+   of the built package.
+
 ========================== =================== =================================================================================================
 Key                        Directive           Notes
 ========================== =================== =================================================================================================
