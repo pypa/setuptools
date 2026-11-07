@@ -1,0 +1,1 @@
+Added a warning for entries in ``tool.setuptools.dynamic`` that are ignored because the corresponding field is not listed in ``project.dynamic`` -- by :user:`VamikaSinghal`

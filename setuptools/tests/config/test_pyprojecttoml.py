@@ -11,6 +11,7 @@ from path import Path
 import setuptools  # noqa: F401 # force distutils.core to be patched
 from setuptools.config.pyprojecttoml import (
     _ToolsTypoInMetadata,
+    _UnlistedDynamic,
     apply_configuration,
     expand_configuration,
     read_configuration,
@@ -210,6 +211,82 @@ class TestEntryPoints:
         msg = f"defined outside of `pyproject.toml`:.*{missing_dynamic}"
         with pytest.raises(OptionError, match=re.compile(msg, re.DOTALL)):
             expand_configuration(self.pyproject(dynamic), tmp_path)
+
+
+class TestUnlistedDynamic:
+    """Entries in ``tool.setuptools.dynamic`` are only used when the corresponding
+    field is also listed in ``project.dynamic``, see #4523.
+    """
+
+    def pyproject(self, tmp_path, dynamic):
+        (tmp_path / "VERSION").write_text("42", encoding="utf-8")
+        (tmp_path / "requirements.txt").write_text("six\n", encoding="utf-8")
+        config = f"""
+        [project]
+        name = "myproj"
+        dynamic = {dynamic!r}
+
+        [tool.setuptools.dynamic]
+        version = {{file = "VERSION"}}
+        dependencies = {{file = ["requirements.txt"]}}
+        """
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(cleandoc(config), encoding="utf-8")
+        return pyproject
+
+    def test_all_listed_in_dynamic(self, tmp_path):
+        pyproject = self.pyproject(tmp_path, ["version", "dependencies"])
+        expanded = read_configuration(pyproject)
+        assert expanded["project"]["version"] == "42"
+        assert expanded["project"]["dependencies"] == ["six"]
+
+    def test_not_listed_in_dynamic(self, tmp_path):
+        pyproject = self.pyproject(tmp_path, ["version"])  # "dependencies" omitted
+        msg = "tool.setuptools.dynamic.dependencies. is ignored"
+        with pytest.warns(_UnlistedDynamic, match=msg):
+            expanded = read_configuration(pyproject)
+        assert expanded["project"]["version"] == "42"
+        assert "dependencies" not in expanded["project"]
+
+    def test_not_listed_in_dynamic_apply(self, tmp_path):
+        pyproject = self.pyproject(tmp_path, ["version"])  # "dependencies" omitted
+        msg = "tool.setuptools.dynamic.dependencies. is ignored"
+        with pytest.warns(_UnlistedDynamic, match=msg):
+            dist = apply_configuration(Distribution(), pyproject)
+        assert dist.metadata.version == "42"
+        assert dist.install_requires == []
+
+    @pytest.mark.parametrize(
+        "dynamic",
+        [
+            ["entry-points"],
+            ["scripts"],
+            ["gui-scripts"],
+            ["scripts", "gui-scripts"],
+            ["scripts", "gui-scripts", "entry-points"],
+        ],
+    )
+    def test_entry_points_used_for_scripts(self, tmp_path, dynamic):
+        # `tool.setuptools.dynamic.entry-points` is also the source of dynamic
+        # `scripts` and `gui-scripts`, so it should not be reported as ignored
+        groups = {"other": ENTRY_POINTS["other"]}
+        if "scripts" in dynamic:
+            groups["console_scripts"] = ENTRY_POINTS["console_scripts"]
+        if "gui-scripts" in dynamic:
+            groups["gui_scripts"] = ENTRY_POINTS["gui_scripts"]
+        entry_points = ConfigParser()
+        entry_points.read_dict(groups)
+        with open(tmp_path / "entry-points.txt", "w", encoding="utf-8") as f:
+            entry_points.write(f)
+        project = {"name": "myproj", "version": "42", "dynamic": dynamic}
+        tool = {"dynamic": {"entry-points": {"file": "entry-points.txt"}}}
+        config = {"project": project, "tool": {"setuptools": tool}}
+        expanded = expand_configuration(config, tmp_path)
+        assert expanded["project"]["entry-points"] == {"other": ENTRY_POINTS["other"]}
+        if "scripts" in dynamic:
+            assert expanded["project"]["scripts"] == ENTRY_POINTS["console_scripts"]
+        if "gui-scripts" in dynamic:
+            assert expanded["project"]["gui-scripts"] == ENTRY_POINTS["gui_scripts"]
 
 
 class TestClassifiers:

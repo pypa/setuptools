@@ -223,6 +223,7 @@ class _ConfigExpander:
             package_dir = ensure_discovered.package_dir
             self._expand_data_files()
             self._expand_cmdclass(package_dir)
+            self._warn_unlisted_dynamic()
             self._expand_all_dynamic(dist, package_dir)
 
         dist._referenced_files.update(self._referenced_files)
@@ -248,6 +249,19 @@ class _ConfigExpander:
         root_dir = self.root_dir
         cmdclass = partial(_expand.cmdclass, package_dir=package_dir, root_dir=root_dir)
         self._process_field(self.setuptools_cfg, "cmdclass", cmdclass)
+
+    def _warn_unlisted_dynamic(self):
+        """Warn about entries in ``tool.setuptools.dynamic`` that are not used
+        because the corresponding field is not listed in ``project.dynamic``.
+        """
+        listed = set(self.dynamic)
+        if listed & {"scripts", "gui-scripts"}:
+            # `tool.setuptools.dynamic.entry-points` is also the source for
+            # dynamic `scripts` and `gui-scripts`, see `_obtain_entry_points`.
+            listed.add("entry-points")
+        for field in self.dynamic_cfg:
+            if field not in listed:
+                _UnlistedDynamic.emit(field=field)
 
     def _expand_all_dynamic(self, dist: Distribution, package_dir: Mapping[str, str]):
         special = (  # need special handling
@@ -475,3 +489,21 @@ class _ToolsTypoInMetadata(SetuptoolsWarning):
     _SUMMARY = (
         "Ignoring [tools.setuptools] in pyproject.toml, did you mean [tool.setuptools]?"
     )
+
+
+class _UnlistedDynamic(SetuptoolsWarning):
+    _SUMMARY = (
+        "`tool.setuptools.dynamic.{field}` is ignored "
+        "because `{field}` is not listed in `project.dynamic`."
+    )
+
+    _DETAILS = """
+    According to the spec (see the link below), setuptools can only compute
+    `{field}` from `tool.setuptools.dynamic` when `{field}` is listed as `dynamic`
+    in the `[project]` table of `pyproject.toml`. Otherwise this configuration
+    is ignored, which can result in metadata missing from the built package.
+
+    To prevent this problem, you can add `{field}` to `project.dynamic`,
+    or alternatively remove `tool.setuptools.dynamic.{field}`.
+    """
+    _SEE_DOCS = "userguide/pyproject_config.html#dynamic-metadata"
