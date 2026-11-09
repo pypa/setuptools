@@ -129,7 +129,7 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
                         char_class = '^'
                         inner = inner[1:]
 
-                    char_class += re.escape(inner)
+                    char_class += re.escape(inner).replace(r'\-', '-')
                     pat += f'[{char_class}]'
 
                     # Skip to the end ]
