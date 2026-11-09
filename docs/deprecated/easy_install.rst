@@ -901,7 +901,7 @@ Command-Line Options
     as the main Python ``site-packages`` directory.  As of 0.6a10, EasyInstall
     automatically detects whether a given directory processes ``.pth`` files
     (or can be made to do so), so you should not normally need to use this
-    option.  It is is now only necessary if you want to override EasyInstall's
+    option.  It is now only necessary if you want to override EasyInstall's
     judgment and force an installation directory to be treated as if it
     supported ``.pth`` files.
 
