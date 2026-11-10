@@ -130,6 +130,9 @@ translate_specs: list[tuple[str, list[str], list[str]]] = [
         ['keyd.pem', 'key-.pem'],
         ['keyb.pem'],
     ),
+    ('key[z-a].pem', [], ['keya.pem', 'keyz.pem', 'key-.pem']),
+    ('key[z-ab].pem', ['keyb.pem'], ['keya.pem', 'keyz.pem']),
+    ('key[!z-a].pem', ['keya.pem', 'keyz.pem', 'key-.pem'], []),
 ]
 """
 A spec of inputs for 'translate_pattern' and matches and mismatches

@@ -58,6 +58,25 @@ class _NormalizedMatcher:
         return self._pattern.search(unicode_utils.normalize(path))
 
 
+def _translate_char_class(inner):
+    """
+    Translate the inside of a glob [...] class to a regex class body,
+    keeping ranges such as a-z and dropping reversed ones like fnmatch.
+    """
+    body = ''
+    i = 0
+    while i < len(inner):
+        if i + 2 < len(inner) and inner[i + 1] == '-':
+            lo, hi = inner[i], inner[i + 2]
+            if lo <= hi:
+                body += f'{re.escape(lo)}-{re.escape(hi)}'
+            i += 3
+        else:
+            body += re.escape(inner[i])
+            i += 1
+    return body
+
+
 def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
     """
     Translate a file path glob like '*.txt' in to a regular expression.
@@ -129,8 +148,13 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
                         char_class = '^'
                         inner = inner[1:]
 
-                    char_class += re.escape(inner).replace(r'\-', '-')
-                    pat += f'[{char_class}]'
+                    body = _translate_char_class(inner)
+                    if body:
+                        pat += f'[{char_class}{body}]'
+                    else:
+                        # Only reversed ranges, as in [z-a]: like fnmatch, the
+                        # class matches nothing (or any character if negated)
+                        pat += valid_char if char_class else '(?!)'
 
                     # Skip to the end ]
                     i = inner_i
