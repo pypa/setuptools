@@ -1,0 +1,1 @@
+``exclude_package_data`` patterns now match file names stored in a different Unicode normalization form, as ``MANIFEST.in`` patterns already do.

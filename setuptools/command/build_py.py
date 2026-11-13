@@ -14,6 +14,7 @@ from typing import Any
 
 from more_itertools import unique_everseen
 
+from .. import unicode_utils
 from .._path import StrPath, StrPathT
 from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning
@@ -289,11 +290,16 @@ class build_py(orig.build_py):
             package,
             src_dir,
         )
-        match_groups = (fnmatch.filter(files, pattern) for pattern in patterns)
+        # Compare in one Unicode form, as FileList does for MANIFEST.in
+        names = [unicode_utils.normalize(fn) for fn in files]
+        match_groups = (
+            fnmatch.filter(names, unicode_utils.normalize(pattern))
+            for pattern in patterns
+        )
         # flatten the groups of matches into an iterable of matches
         matches = itertools.chain.from_iterable(match_groups)
         bad = set(matches)
-        keepers = (fn for fn in files if fn not in bad)
+        keepers = (fn for fn, name in zip(files, names) if name not in bad)
         # ditch dupes
         return list(unique_everseen(keepers))
 
