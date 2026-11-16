@@ -1,6 +1,7 @@
 import os
 import shutil
 import stat
+import unicodedata
 import warnings
 from pathlib import Path
 from typing import ClassVar
@@ -59,6 +60,35 @@ def test_recursive_in_package_data_glob(tmpdir_cwd):
     assert stat.S_ISREG(os.stat('build/lib/path/subpath/subsubpath/data').st_mode), (
         "File is not included"
     )
+
+
+def test_exclude_package_data_unicode_normalization(tmpdir_cwd):
+    """
+    An NFC pattern excludes a data file whose name is stored in NFD.
+    """
+    nfc = unicodedata.normalize('NFC', 'caf\u00e9.key')
+    nfd = unicodedata.normalize('NFD', nfc)
+    os.mkdir('pkg')
+    Path('pkg/__init__.py').touch()
+    Path('pkg', nfd).write_text('secret', encoding='utf-8')
+    Path('pkg/keep.txt').write_text('data', encoding='utf-8')
+    dist = Distribution(
+        dict(
+            script_name='setup.py',
+            script_args=['build_py'],
+            packages=['pkg'],
+            package_data={'pkg': ['*']},
+            exclude_package_data={'pkg': [nfc]},
+        )
+    )
+    dist.parse_command_line()
+    dist.run_commands()
+
+    built = {
+        unicodedata.normalize('NFC', p.name) for p in Path('build/lib/pkg').iterdir()
+    }
+    assert 'keep.txt' in built
+    assert nfc not in built
 
 
 def test_read_only(tmpdir_cwd):
