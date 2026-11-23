@@ -145,3 +145,77 @@ def test_resolve_dest_rejects_symlinked_escape(tmp_path):
         archive_util._resolve_dest(str(target), 'sub/file.txt')
 
     assert archive_util._resolve_dest(str(target), 'ok/file.txt')
+
+
+def _make_source_tree(tmp_path):
+    src = tmp_path / 'src'
+    (src / 'sub').mkdir(parents=True)
+    (src / 'keep').mkdir()
+    (src / 'top.txt').write_text('top', encoding='utf-8')
+    (src / 'sub' / 'nested.txt').write_text('nested', encoding='utf-8')
+    (src / 'keep' / 'other.txt').write_text('other', encoding='utf-8')
+    return src
+
+
+def test_unpack_directory_without_filter_unpacks_all(tmp_path):
+    """Control: without a filter the whole tree is copied unchanged."""
+    src = _make_source_tree(tmp_path)
+    dest = tmp_path / 'dest'
+
+    archive_util.unpack_directory(str(src), str(dest))
+
+    assert (dest / 'top.txt').read_text(encoding='utf-8') == 'top'
+    assert (dest / 'sub' / 'nested.txt').read_text(encoding='utf-8') == 'nested'
+    assert (dest / 'keep' / 'other.txt').read_text(encoding='utf-8') == 'other'
+
+
+def test_unpack_directory_filter_observes_directories(tmp_path):
+    """The filter is offered directories ('/' suffix) as well as files."""
+    src = _make_source_tree(tmp_path)
+    seen = []
+
+    def record(name, target):
+        seen.append(name)
+        return target
+
+    archive_util.unpack_directory(str(src), str(tmp_path / 'dest'), record)
+
+    assert 'sub/' in seen
+    assert 'keep/' in seen
+    assert 'sub/nested.txt' in seen
+
+
+def test_unpack_directory_filter_can_skip_directory(tmp_path):
+    """Returning None for a directory skips it and its whole subtree."""
+    src = _make_source_tree(tmp_path)
+    seen = []
+
+    def skip_sub(name, target):
+        seen.append(name)
+        return None if name == 'sub/' else target
+
+    dest = tmp_path / 'dest'
+    archive_util.unpack_directory(str(src), str(dest), skip_sub)
+
+    assert 'sub/' in seen
+    assert 'sub/nested.txt' not in seen
+    assert (dest / 'top.txt').read_text(encoding='utf-8') == 'top'
+    assert (dest / 'keep' / 'other.txt').read_text(encoding='utf-8') == 'other'
+    assert not (dest / 'sub').exists()
+
+
+def test_unpack_directory_filter_can_rename_directory(tmp_path):
+    """A renamed directory receives its contents; descendants keep their source key."""
+    src = _make_source_tree(tmp_path)
+    dest = tmp_path / 'dest'
+    seen = []
+
+    def rename_sub(name, target):
+        seen.append(name)
+        return str(dest / 'renamed') if name == 'sub/' else target
+
+    archive_util.unpack_directory(str(src), str(dest), rename_sub)
+
+    assert (dest / 'renamed' / 'nested.txt').read_text(encoding='utf-8') == 'nested'
+    assert not (dest / 'sub').exists()
+    assert 'sub/nested.txt' in seen

@@ -1,0 +1,1 @@
+unpack_directory now passes directories to the progress_filter callback, allowing a directory and its subtree to be skipped or redirected.

@@ -129,9 +129,16 @@ def unpack_directory(filename, extract_dir, progress_filter=default_filter) -> N
         filename: ('', extract_dir),
     }
     for base, dirs, files in os.walk(filename):
+        if base not in paths:
+            # an ancestor directory was skipped by the filter, so skip its subtree
+            continue
         src, dst = paths[base]
         for d in dirs:
-            paths[os.path.join(base, d)] = src + d + '/', os.path.join(dst, d)
+            target = os.path.join(dst, d)
+            target = progress_filter(src + d + '/', target)
+            if not target:
+                continue
+            paths[os.path.join(base, d)] = src + d + '/', target
         for f in files:
             target = os.path.join(dst, f)
             target = progress_filter(src + f, target)
