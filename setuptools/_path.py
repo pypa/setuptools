@@ -17,7 +17,8 @@ StrPathT = TypeVar("StrPathT", bound=str | os.PathLike[str])
 def ensure_directory(path):
     """Ensure that the parent directory of `path` exists"""
     dirname = os.path.dirname(path)
-    os.makedirs(dirname, exist_ok=True)
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)
 
 
 def same_path(p1: StrPath, p2: StrPath) -> bool:

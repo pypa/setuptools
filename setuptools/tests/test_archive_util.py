@@ -5,6 +5,7 @@ import zipfile
 import pytest
 
 from setuptools import archive_util
+from setuptools._path import ensure_directory
 
 from .compat.py39 import os_helper
 
@@ -31,6 +32,22 @@ def tarfile_with_unicode(tmpdir):
     with open(str(target), mode='wb') as tf:
         tf.write(tarobj.getvalue())
     return str(target)
+
+
+@pytest.mark.parametrize('path', ['', 'f.txt', 'a/b.txt'])
+def test_ensure_directory(path, tmp_path, monkeypatch):
+    """
+    A bare filename's parent is the current directory, so ensuring it is a
+    no-op instead of an error from ``os.makedirs('')``.
+    """
+    monkeypatch.chdir(tmp_path)
+
+    ensure_directory(path)
+
+    if path == 'a/b.txt':
+        assert (tmp_path / 'a').is_dir()
+    else:
+        assert list(tmp_path.iterdir()) == []
 
 
 @pytest.mark.xfail(reason="#710 and #712")
