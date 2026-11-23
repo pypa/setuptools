@@ -152,7 +152,13 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     version = self.get_metadata_version()
 
     def write_field(key, value):
-        file.write(f"{key}: {value}\n")
+        # Fold any continuation lines, so that a newline in a value cannot
+        # start a new field (the payload below is the only unfolded content).
+        file.write(f"{key}: {rfc822_escape(str(value))}\n")
+
+    def write_list(key, values):
+        for value in values or []:
+            write_field(key, value)
 
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
@@ -179,7 +185,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     if license_expression := self.license_expression:
         write_field('License-Expression', license_expression)
     elif license := self.get_license():
-        write_field('License', rfc822_escape(license))
+        write_field('License', license)
 
     for label, url in self.project_urls.items():
         write_field('Project-URL', f'{label}, {url}')
@@ -192,12 +198,12 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     for platform in platforms:
         write_field('Platform', platform)
 
-    self._write_list(file, 'Classifier', self.get_classifiers())
+    write_list('Classifier', self.get_classifiers())
 
     # PEP 314
-    self._write_list(file, 'Requires', self.get_requires())
-    self._write_list(file, 'Provides', self.get_provides())
-    self._write_list(file, 'Obsoletes', self.get_obsoletes())
+    write_list('Requires', self.get_requires())
+    write_list('Provides', self.get_provides())
+    write_list('Obsoletes', self.get_obsoletes())
 
     # Setuptools specific for PEP 345
     if hasattr(self, 'python_requires'):
@@ -208,7 +214,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
         write_field('Description-Content-Type', self.long_description_content_type)
 
     safe_license_files = map(_safe_license_file, self.license_files or [])
-    self._write_list(file, 'License-File', safe_license_files)
+    write_list('License-File', safe_license_files)
     _write_requirements(self, file)
 
     for field, attr in _POSSIBLE_DYNAMIC_FIELDS.items():

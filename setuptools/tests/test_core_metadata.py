@@ -68,6 +68,41 @@ def test_rfc822_unescape(content, result):
     assert (result or content) == rfc822_unescape(rfc822_escape(content))
 
 
+@pytest.mark.parametrize(
+    "attrs",
+    (
+        pytest.param({"author": "Foo Bar\nRequires-Dist: injected"}, id="author"),
+        pytest.param(
+            {"author_email": "foo@bar.net\nRequires-Dist: injected"},
+            id="author_email",
+        ),
+        pytest.param(
+            {"maintainer": "Foo Bar\rRequires-Dist: injected"},
+            id="maintainer_carriage_return",
+        ),
+        pytest.param({"url": "https://example.com\nRequires-Dist: injected"}, id="url"),
+        pytest.param({"keywords": ["one\nRequires-Dist: injected"]}, id="keywords"),
+        pytest.param({"platforms": ["any\nRequires-Dist: injected"]}, id="platforms"),
+        pytest.param(
+            {"classifiers": ["Private :: Nope\nRequires-Dist: injected"]},
+            id="classifiers",
+        ),
+        pytest.param(
+            {"project_urls": {"Home\nRequires-Dist: injected": "https://example.com"}},
+            id="project_urls",
+        ),
+        pytest.param(
+            {"long_description_content_type": "text/plain\nRequires-Dist: injected"},
+            id="long_description_content_type",
+        ),
+    ),
+)
+def test_newline_in_field_does_not_add_a_field(attrs):
+    dist = Distribution({"name": "package", "version": "0.0.1", **attrs})
+    metadata = message_from_string(_get_pkginfo(dist))
+    assert metadata.get_all("Requires-Dist") is None
+
+
 def __read_test_cases():
     base = EXAMPLE_BASE_INFO
 
