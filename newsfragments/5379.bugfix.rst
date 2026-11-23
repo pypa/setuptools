@@ -1,0 +1,1 @@
+ensure_directory no longer raises FileNotFoundError when given a bare filename.
