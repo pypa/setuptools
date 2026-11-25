@@ -1,0 +1,1 @@
+Added the upstream MIT copyright notice to code copied from ``jaraco.itertools``.
