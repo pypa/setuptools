@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import io
+import warnings
 from email import message_from_string
 from email.generator import Generator
 from email.message import EmailMessage
@@ -20,6 +21,7 @@ from setuptools import sic
 from setuptools._core_metadata import rfc822_escape, rfc822_unescape
 from setuptools.config import expand, setupcfg
 from setuptools.dist import Distribution
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from .config.downloads import retrieve_file, urls_from_file
 
@@ -528,6 +530,30 @@ class TestPEP643:
             "AUTHORS.txt",
             "LICENSE.md",
         }
+
+
+class TestProvidesExtra:
+    def _provides_extra(self, extras_require):
+        attrs = dict(name="pkg", version="42", extras_require=extras_require)
+        pkg_info = _get_pkginfo(Distribution(attrs))
+        assert _valid_metadata(pkg_info)
+        return [ln for ln in pkg_info.splitlines() if ln.startswith("Provides-Extra")]
+
+    def test_ambiguous_normalization_written_once(self):
+        extras = {"dev_test": ["pytest"], "dev-test": ["coverage"]}
+        with pytest.warns(SetuptoolsDeprecationWarning, match="normalize to the same"):
+            provides = self._provides_extra(extras)
+        assert provides == ["Provides-Extra: dev-test"]
+
+    def test_repeated_extra_with_conditions_does_not_warn(self):
+        extras = {
+            'mysql:platform_python_implementation=="CPython"': ["mysqlclient"],
+            'mysql:platform_python_implementation=="PyPy"': ["pymysql"],
+        }
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", SetuptoolsDeprecationWarning)
+            provides = self._provides_extra(extras)
+        assert provides == ["Provides-Extra: mysql"]
 
 
 def _makedist(**attrs):

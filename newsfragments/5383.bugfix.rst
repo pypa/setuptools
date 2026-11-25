@@ -1,0 +1,1 @@
+Fixed the inverted check in ``Provides-Extra`` handling: extras whose names normalize to the same value (e.g. ``dev_test`` and ``dev-test``) are now written once and warned about, and an extra repeated with different ``:<marker>`` conditions no longer triggers a false ambiguity warning.
