@@ -255,7 +255,10 @@ def _include_extra(req: str, extra: str, condition: str) -> Requirement:
 
 def _write_provides_extra(file, processed_extras, safe, unsafe):
     previous = processed_extras.get(safe)
-    if previous == unsafe:
+    if previous is None:
+        processed_extras[safe] = unsafe
+        file.write(f"Provides-Extra: {safe}\n")
+    elif previous != unsafe:
         SetuptoolsDeprecationWarning.emit(
             'Ambiguity during "extra" normalization for dependencies.',
             f"""
@@ -265,9 +268,6 @@ def _write_provides_extra(file, processed_extras, safe, unsafe):
             """,
             see_url="https://peps.python.org/pep-0685/",
         )
-    else:
-        processed_extras[safe] = unsafe
-        file.write(f"Provides-Extra: {safe}\n")
 
 
 # from pypa/distutils#244; needed only until that logic is always available
