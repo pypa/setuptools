@@ -760,3 +760,26 @@ def test_install_as_egg_rejects_namespace_escape(tmp_path):
         Wheel(str(whl)).install_as_egg(str(dest))
 
     assert not (outside / '__init__.py').exists()
+
+
+def test_convert_requires_parenthesized_extra_marker(tmp_path):
+    """
+    An ``extra ==`` marker nested in parentheses defines an extra, and the
+    dependency must be placed under that extra rather than lost entirely.
+    """
+    dist_info = tmp_path / 'demo_pkg-1.0.dist-info'
+    dist_info.mkdir()
+    (dist_info / 'METADATA').write_text(
+        'Metadata-Version: 2.1\n'
+        'Name: demo-pkg\n'
+        'Version: 1.0\n'
+        'Requires-Dist: x; (extra == "test") and (python_version > "3")\n',
+        encoding='utf-8',
+    )
+
+    install_requires, extras_require = Wheel._convert_requires(
+        str(tmp_path), str(dist_info)
+    )
+
+    assert install_requires == []
+    assert extras_require == {'test': ['x']}

@@ -19,7 +19,7 @@ import setuptools
 from setuptools.archive_util import _unpack_zipfile_obj
 from setuptools.command.egg_info import _egg_basename, write_requirements
 
-from ._discovery import extras_from_deps
+from ._discovery import extras_from_deps, extras_from_markers
 from ._importlib import metadata
 from .unicode_utils import _read_utf8_with_fallback
 
@@ -234,11 +234,7 @@ class Wheel:
                 markers = req.marker._markers
             except AttributeError:
                 markers = ()
-            return {
-                marker[2].value
-                for marker in markers
-                if isinstance(marker, tuple) and marker[0].value == 'extra'
-            }
+            return extras_from_markers(markers)
 
         install_requires = list(
             map(raw_req, filter(eval, itertools.filterfalse(for_extra, reqs)))
