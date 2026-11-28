@@ -123,6 +123,82 @@ class TestBuildExt:
         else:
             assert abi_name in res
 
+    @pytest.mark.parametrize(
+        ('host', 'target', 'suffix', 'override', 'limited_api', 'expected'),
+        [
+            (
+                'win-amd64',
+                'win-arm64',
+                '.cp310-win_amd64.pyd',
+                None,
+                False,
+                '.cp310-win_arm64.pyd',
+            ),
+            (
+                'win-amd64',
+                'win-arm64',
+                '.cp315t-win_amd64.pyd',
+                None,
+                False,
+                '.cp315t-win_arm64.pyd',
+            ),
+            (
+                'win-amd64',
+                'win32',
+                '_d.cp310-win_amd64.pyd',
+                None,
+                False,
+                '_d.cp310-win32.pyd',
+            ),
+            (
+                'win-amd64',
+                'win-amd64',
+                '.cp310-win_amd64.pyd',
+                None,
+                False,
+                '.cp310-win_amd64.pyd',
+            ),
+            (
+                'win-amd64',
+                'win-arm64',
+                '.cp310-win_arm64.pyd',
+                None,
+                False,
+                '.cp310-win_arm64.pyd',
+            ),
+            (
+                'win-amd64',
+                'win-arm64',
+                '.cp310-win_amd64.pyd',
+                '.custom-win_amd64.pyd',
+                False,
+                '.custom-win_amd64.pyd',
+            ),
+            ('win-amd64', 'win-arm64', '.cp310-win_amd64.pyd', None, True, '.pyd'),
+        ],
+    )
+    def test_windows_extension_filename(
+        self, monkeypatch, host, target, suffix, override, limited_api, expected
+    ) -> None:
+        monkeypatch.setattr(
+            'setuptools.command.build_ext.get_host_platform', lambda: host
+        )
+        monkeypatch.setitem(get_config_vars(), 'EXT_SUFFIX', suffix)
+        if override is not None:
+            monkeypatch.setenv('SETUPTOOLS_EXT_SUFFIX', override)
+        else:
+            monkeypatch.delenv('SETUPTOOLS_EXT_SUFFIX', raising=False)
+
+        extension = Extension('spam.eggs', ['eggs.c'], py_limited_api=limited_api)
+        cmd = build_ext(Distribution(dict(ext_modules=[extension])))
+        cmd.plat_name = target
+        cmd.ensure_finalized()
+
+        assert cmd.get_ext_filename('spam.eggs') == os.path.join(
+            'spam', 'eggs' + expected
+        )
+        assert os.path.basename(cmd.get_ext_fullpath('spam.eggs')) == 'eggs' + expected
+
     def test_stable_abi_filename(self):
         """
         Test that extension filename is correct if 'py_limited_api' is

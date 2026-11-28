@@ -17,6 +17,7 @@ from setuptools.extension import Extension, Library
 from distutils import log
 from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler, get_config_var
+from distutils.util import get_host_platform
 
 if TYPE_CHECKING:
     # Cython not installed on CI tests, causing _build_ext to be `Any`
@@ -95,6 +96,18 @@ def get_abi3_suffix():
     platform = get_config_var('SOABI_PLATFORM')
     _, ext = os.path.splitext(suffix)
     return f'{abi}-{platform}{ext}' if platform else f'{abi}{ext}'
+
+
+def _windows_target_suffix(suffix: str, target: str | None) -> str:
+    if not target or not (target == 'win32' or target.startswith('win-')):
+        return suffix
+    host = get_host_platform()
+    if host == target or not (host == 'win32' or host.startswith('win-')):
+        return suffix
+    host_tag = f'-{host.replace("-", "_")}.pyd'
+    if not suffix.endswith(host_tag):
+        return suffix
+    return f'{suffix.removesuffix(host_tag)}-{target.replace("-", "_")}.pyd'
 
 
 class build_ext(_build_ext):
@@ -180,6 +193,10 @@ class build_ext(_build_ext):
                     "and environment variable SETUPTOOLS_EXT_SUFFIX is missing"
                 )
             so_ext = ext_suffix
+            target_suffix = _windows_target_suffix(so_ext, self.plat_name)
+            if target_suffix != so_ext and filename.endswith(so_ext):
+                filename = filename.removesuffix(so_ext) + target_suffix
+                so_ext = target_suffix
 
         if fullname in self.ext_map:
             ext = self.ext_map[fullname]
