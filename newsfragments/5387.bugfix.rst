@@ -1,0 +1,1 @@
+Fixed Windows cross-compilation to use the target architecture in extension module filenames.
